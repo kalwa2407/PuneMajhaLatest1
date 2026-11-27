@@ -180,7 +180,7 @@ export async function GET(request) {
 
     } catch (error) {
         console.error('News GET Error:', error)
-        return NextResponse.json({ error: 'Failed to fetch news' }, { status: 500 })
+        return NextResponse.json({ articles: [], total: 0, hasMore: false })
     }
 }
 

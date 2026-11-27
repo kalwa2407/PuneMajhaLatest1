@@ -110,6 +110,7 @@ export const saveContentSettings = (settings) => {
 export const getPremiumAdSettings = async () => {
     try {
         const res = await fetch('/api/ads/premium')
+        if (!res.ok) return { ...defaultSettings.premiumAd, enabled: false }
         const data = await res.json()
         if (data.enabled === false) {
             return { enabled: false, imageUrl: '', linkUrl: '', title: '' }
@@ -151,6 +152,7 @@ export const savePremiumAdSettings = async (adSettings) => {
 export const getSidebarAdSettings = async () => {
     try {
         const res = await fetch('/api/ads/sidebar')
+        if (!res.ok) return { enabled: false, items: [] }
         const data = await res.json()
         if (data.enabled === false) {
             const settings = getContentSettings()

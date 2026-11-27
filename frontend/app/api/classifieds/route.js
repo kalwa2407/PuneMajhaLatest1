@@ -69,7 +69,7 @@ export async function GET(request) {
                 return dateB - dateA;
             });
         }
-        
+
         const hasMore = allDocs.length > limit;
         const paginatedAds = hasMore ? allDocs.slice(0, limit) : allDocs;
 
@@ -94,7 +94,7 @@ export async function GET(request) {
         return response;
     } catch (error) {
         console.error('Error fetching classifieds:', error.message);
-        return NextResponse.json({ error: 'Failed to fetch classifieds' }, { status: 500 });
+        return NextResponse.json({ classifieds: [], total: 0, page: 1, totalPages: 0 });
     }
 }
 

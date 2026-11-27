@@ -55,7 +55,7 @@ export async function GET(request) {
         return response;
     } catch (error) {
         console.error('Error fetching businesses:', error.message);
-        return NextResponse.json({ error: 'Failed to fetch businesses' }, { status: 500 });
+        return NextResponse.json([]);
     }
 }
 

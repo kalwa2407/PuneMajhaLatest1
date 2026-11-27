@@ -35,6 +35,6 @@ export async function GET(request) {
         return response;
     } catch (error) {
         console.error('Error fetching shorts:', error.message);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ shorts: [] });
     }
 }

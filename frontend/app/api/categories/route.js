@@ -9,6 +9,9 @@ const CACHE_KEY = 'categories_all';
 // GET: List active categories (Public)
 export async function GET() {
     const db = getDb();
+    if (!db) {
+        return NextResponse.json([]);
+    }
     try {
         // Check cache first
         const cachedData = getCache(CACHE_KEY);
@@ -32,6 +35,6 @@ export async function GET() {
         return NextResponse.json(categories)
     } catch (error) {
         console.error('Categories GET Error:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        return NextResponse.json([])
     }
 }

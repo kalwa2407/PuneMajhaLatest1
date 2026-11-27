@@ -16,7 +16,7 @@ export async function GET() {
 
     const db = getDb();
     if (!db) {
-        return NextResponse.json({ error: 'Database connection failed' }, { status: 503 });
+        return NextResponse.json({ enabled: false, items: [] });
     }
     try {
         const doc = await withDeadline(db.collection('site_settings').doc('sidebar_ad').get())
@@ -37,7 +37,7 @@ export async function GET() {
         });
     } catch (error) {
         console.error('Ads Sidebar GET Error:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        return NextResponse.json({ enabled: false, items: [] })
     }
 }
 

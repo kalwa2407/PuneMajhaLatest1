@@ -160,18 +160,45 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
     }
   }, [article?.id])
 
+  const isSnippetOnly = (art) => {
+    if (!art?.id) return false
+    if (art.contentPartial || !art.content) return true
+    if (typeof art.content === 'string') return art.content.trim().length <= 320
+    if (typeof art.content === 'object') {
+      const maxLen = Math.max(
+        ...Object.values(art.content).map((v) => (typeof v === 'string' ? v.trim().length : 0)),
+        0
+      )
+      return maxLen <= 320
+    }
+    return true
+  }
+
   const [fullArticle, setFullArticle] = useState(article)
+  const [loadingFullArticle, setLoadingFullArticle] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
     setFullArticle(article)
-    // If article only has a preview snippet (<= 160 chars), fetch full article from API
-    if (article?.id && (!article.content || (typeof article.content === 'string' && article.content.length <= 160))) {
-      news.getOne(article.id).then(res => {
-        const data = res?.article || res
-        if (data && data.content) {
-          setFullArticle(data)
-        }
-      }).catch(err => console.warn('Failed to load full article content:', err))
+    if (isSnippetOnly(article)) {
+      setLoadingFullArticle(true)
+      news.getOne(article.id)
+        .then((res) => {
+          if (cancelled) return
+          const data = res?.article || res
+          if (data && data.id) {
+            setFullArticle({ ...data, contentPartial: false })
+          }
+        })
+        .catch((err) => console.warn('Failed to load full article content:', err))
+        .finally(() => {
+          if (!cancelled) setLoadingFullArticle(false)
+        })
+    } else {
+      setLoadingFullArticle(false)
+    }
+    return () => {
+      cancelled = true
     }
   }, [article?.id])
 
@@ -188,9 +215,9 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
     setDynamicSummary('')
     setDynamicContent('')
 
-    if (!activeArticle?.id) return
+    if (!activeArticle?.id || activeArticle.contentPartial) return
 
-    const cacheKey = `tr_v2_${activeArticle.id}_${language}`
+    const cacheKey = `tr_v3_${activeArticle.id}_${language}`
     try {
       const cached = sessionStorage.getItem(cacheKey)
       if (cached) {
@@ -281,7 +308,7 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
     return () => {
       isCancelled = true
     }
-  }, [activeArticle?.id, language, activeArticle?.title, activeArticle?.metaDescription, activeArticle?.content])
+  }, [activeArticle?.id, language, activeArticle?.title, activeArticle?.metaDescription, activeArticle?.content, activeArticle?.contentPartial])
 
   // Get localized content with dynamic fallback
   // Early return only after every hook has run (rules of hooks)
@@ -394,7 +421,7 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
             
             {summary && (
               <p className="text-sm sm:text-base md:text-lg font-medium text-gray-600 leading-snug break-words [overflow-wrap:anywhere] w-full">
-                {stripMarkdown(summary)}
+                {stripMarkdown(summary).replace(/^[a-z]/, (c) => c.toUpperCase())}
               </p>
             )}
           </div>
@@ -491,7 +518,15 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
           <div className={`text-gray-800 leading-relaxed space-y-6 pb-6 break-words [overflow-wrap:anywhere] article-prose-content w-full min-w-0 ${
             fontSizeLevel === 'sm' ? 'text-sm sm:text-base' : fontSizeLevel === 'lg' ? 'text-lg sm:text-xl' : 'text-base sm:text-lg'
           }`}>
-            {(() => {
+            {loadingFullArticle ? (
+              <div className="space-y-4 animate-pulse py-2">
+                <div className="h-4 bg-slate-200 rounded w-full" />
+                <div className="h-4 bg-slate-200 rounded w-11/12" />
+                <div className="h-4 bg-slate-200 rounded w-5/6" />
+                <div className="h-4 bg-slate-200 rounded w-full mt-4" />
+                <div className="h-4 bg-slate-200 rounded w-4/5" />
+              </div>
+            ) : (() => {
               const hasTopVideo = Boolean(extractYouTubeId(activeArticle.youtubeUrl || activeArticle.videoUrl))
               const rawGallery = Array.isArray(activeArticle.galleryImages) ? activeArticle.galleryImages : []
               const rawThumbs = Array.isArray(activeArticle.thumbnails) ? activeArticle.thumbnails : []

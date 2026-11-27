@@ -27,26 +27,8 @@ async function fetchInitialNews() {
     const snapshot = await withDeadline(db.collection('news_articles')
       .where('approvalStatus', '==', 'approved')
       .where('active', '==', true)
-      .select(
-        'title',
-        'category',
-        'categoryId',
-        'city',
-        'mainImage',
-        'thumbnailUrl',
-        'thumbnails',
-        'galleryImages',
-        'images',
-        'youtubeUrl',
-        'videoUrl',
-        'featured',
-        'views',
-        'publishedAt',
-        'createdAt',
-        'metaDescription'
-      )
       .limit(350)
-      .get(), 12000)
+      .get(), 5000)
 
     // Sort in memory (fallback method from API)
     let articles = snapshot.docs.map(doc => {
@@ -54,7 +36,7 @@ async function fetchInitialNews() {
       // Serialize Firebase Timestamps for Next.js Server Components
       const createdAt = data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : (data.createdAt || null)
       const publishedAt = data.publishedAt?.toDate ? data.publishedAt.toDate().toISOString() : (data.publishedAt || createdAt)
-      
+
       // CRITICAL PERF: Strip heavy full HTML content for homepage cards.
       // Full content is fetched on-demand when opening /api/news/[id].
       const snippet = typeof data.content === 'string'
@@ -78,7 +60,8 @@ async function fetchInitialNews() {
         publishedAt,
         createdAt,
         metaDescription: data.metaDescription || snippet,
-        content: snippet
+        content: snippet,
+        contentPartial: true
       }
     })
 

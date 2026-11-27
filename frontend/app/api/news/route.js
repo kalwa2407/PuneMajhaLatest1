@@ -108,58 +108,24 @@ export async function GET(request) {
             if (err.message.includes('index') || err.message.includes('FAILED_PRECONDITION')) {
                 console.warn('⚠️ FIRESTORE INDEX MISSING: Falling back to in-memory sorting. Please create the index for better performance.');
 
-                const fallbackLimit = Math.max(limit * 4, 350);
-                const fallbackQuery = queryParam && queryParam.trim()
-                    ? query.limit(fallbackLimit)
-                    : query.select(
-                        'title',
-                        'category',
-                        'categoryId',
-                        'city',
-                        'mainImage',
-                        'thumbnailUrl',
-                        'thumbnails',
-                        'galleryImages',
-                        'images',
-                        'youtubeUrl',
-                        'videoUrl',
-                        'featured',
-                        'views',
-                        'publishedAt',
-                        'createdAt',
-                        'metaDescription',
-                        'authorName',
-                        'tags'
-                    ).limit(fallbackLimit);
+                snapshot = await withDeadline(query.limit(Math.max(limit * 4, 350)).get());
 
-                snapshot = await withDeadline(fallbackQuery.get(), 12000);
+                let tempDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                tempDocs.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
                 let tempDocs = snapshot.docs.map(doc => {
                     const d = doc.data();
-                    return { id: doc.id, ...d, ...(d.content ? {} : { content: d.metaDescription || '' }) };
+                    return {
+                        id: doc.id,
+                        ...d,
+                        ...(d.content ? {} : { content: d.metaDescription || '', contentPartial: true })
+                    };
                 });
                 tempDocs.sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
 
-                if (queryParam && queryParam.trim()) {
-                    const q = queryParam.trim().toLowerCase();
-                    const getText = (val) => !val ? '' : typeof val === 'string' ? val.toLowerCase() : typeof val === 'object' ? Object.values(val).join(' ').toLowerCase() : String(val).toLowerCase();
-                    tempDocs = tempDocs.filter(doc =>
-                        getText(doc.title).includes(q) ||
-                        getText(doc.shortDescription || doc.metaDescription).includes(q) ||
-                        getText(doc.tags).includes(q) ||
-                        getText(doc.category).includes(q) ||
-                        getText(doc.content).includes(q)
-                    );
-                }
-
-                const offset = (page - 1) * limit;
-                const sliced = tempDocs.slice(offset, offset + limit + 1);
-                const fallbackHasMore = sliced.length > limit;
-                const fallbackArticles = fallbackHasMore ? sliced.slice(0, limit) : sliced;
-
                 const responseData = {
                     articles: fallbackArticles,
-                    total: tempDocs.length,
+                    total: fallbackArticles.length,
                     page,
                     limit,
                     hasMore: fallbackHasMore

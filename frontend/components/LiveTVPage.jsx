@@ -251,19 +251,19 @@ export default function LiveTVPage({ setCurrentView }) {
                 prev.some((c) => c.id === id)
                   ? prev
                   : [
-                      ...prev,
-                      {
-                        id,
-                        title: match.title,
-                        channelName: match.channel,
-                        category: 'news',
-                        url: `https://www.youtube.com/watch?v=${match.videoId}`,
-                        thumbnail: `https://i.ytimg.com/vi/${match.videoId}/mqdefault.jpg`,
-                        isLive: false,
-                        isActive: true,
-                        description: match.channel,
-                      },
-                    ]
+                    ...prev,
+                    {
+                      id,
+                      title: match.title,
+                      channelName: match.channel,
+                      category: 'news',
+                      url: `https://www.youtube.com/watch?v=${match.videoId}`,
+                      thumbnail: `https://i.ytimg.com/vi/${match.videoId}/mqdefault.jpg`,
+                      isLive: false,
+                      isActive: true,
+                      description: match.channel,
+                    },
+                  ]
               )
               setActiveStreamId(id)
               setActiveSidebarTab('bulletins')
@@ -271,7 +271,7 @@ export default function LiveTVPage({ setCurrentView }) {
           }
         }
       })
-      .catch(() => {})
+      .catch(() => { })
     return () => { mounted = false }
   }, [])
 
@@ -321,19 +321,19 @@ export default function LiveTVPage({ setCurrentView }) {
       prev.some((c) => c.id === id)
         ? prev
         : [
-            ...prev,
-            {
-              id,
-              title: v.title,
-              channelName: v.channel,
-              category: 'news',
-              url: `https://www.youtube.com/watch?v=${v.videoId}`,
-              thumbnail: `https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg`,
-              isLive: false,
-              isActive: true,
-              description: `${v.channel}${v.published ? ` • ${new Date(v.published).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}`,
-            },
-          ]
+          ...prev,
+          {
+            id,
+            title: v.title,
+            channelName: v.channel,
+            category: 'news',
+            url: `https://www.youtube.com/watch?v=${v.videoId}`,
+            thumbnail: `https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg`,
+            isLive: false,
+            isActive: true,
+            description: `${v.channel}${v.published ? ` • ${new Date(v.published).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}`,
+          },
+        ]
     )
     switchChannel(id)
   }
@@ -394,11 +394,10 @@ export default function LiveTVPage({ setCurrentView }) {
             <button
               type="button"
               onClick={() => setCinemaBackdrop((prev) => !prev)}
-              className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer shrink-0 ${
-                cinemaBackdrop
-                  ? 'bg-brand-navy text-white border-brand-navy'
-                  : 'bg-white text-slate-700 border-slate-300 hover:border-brand-navy'
-              }`}
+              className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer shrink-0 ${cinemaBackdrop
+                ? 'bg-brand-navy text-white border-brand-navy'
+                : 'bg-white text-slate-700 border-slate-300 hover:border-brand-navy'
+                }`}
             >
               <Film className="w-3.5 h-3.5" />
               <span>{cinemaBackdrop ? ui.cinemaOn : ui.cinemaOff}</span>
@@ -427,11 +426,10 @@ export default function LiveTVPage({ setCurrentView }) {
                     key={cat.id}
                     type="button"
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border transition-colors cursor-pointer ${
-                      selected
-                        ? 'bg-brand-navy text-white border-brand-navy shadow-xs'
-                        : 'bg-white text-slate-700 border-slate-300 hover:border-brand-navy'
-                    }`}
+                    className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border transition-colors cursor-pointer ${selected
+                      ? 'bg-brand-navy text-white border-brand-navy shadow-xs'
+                      : 'bg-white text-slate-700 border-slate-300 hover:border-brand-navy'
+                      }`}
                   >
                     <cat.Icon className="w-3 h-3" />
                     <span>{label}</span>
@@ -582,11 +580,10 @@ export default function LiveTVPage({ setCurrentView }) {
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveSidebarTab(tab.id)}
-                        className={`py-2 px-1.5 rounded-xl text-[11px] font-black transition-all flex items-center justify-center gap-1 cursor-pointer truncate ${
-                          active
-                            ? 'bg-brand-navy text-white shadow-xs'
-                            : 'text-slate-600 hover:text-brand-navy hover:bg-white/70'
-                        }`}
+                        className={`py-2 px-1.5 rounded-xl text-[11px] font-black transition-all flex items-center justify-center gap-1 cursor-pointer truncate ${active
+                          ? 'bg-brand-navy text-white shadow-xs'
+                          : 'text-slate-600 hover:text-brand-navy hover:bg-white/70'
+                          }`}
                       >
                         <tab.Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-red-300' : 'text-brand-red'}`} />
                         <span className="truncate">{tab.label}</span>
@@ -616,17 +613,16 @@ export default function LiveTVPage({ setCurrentView }) {
                           <div
                             key={channel.id}
                             onClick={() => switchChannel(channel.id)}
-                            className={`flex gap-3 p-2.5 rounded-xl cursor-pointer transition-all border group ${
-                              isPlaying
-                                ? 'bg-red-50/70 border-brand-red shadow-xs'
-                                : 'bg-white border-slate-200 hover:border-brand-navy hover:bg-slate-50'
-                            }`}
+                            className={`flex gap-3 p-2.5 rounded-xl cursor-pointer transition-all border group ${isPlaying
+                              ? 'bg-red-50/70 border-brand-red shadow-xs'
+                              : 'bg-white border-slate-200 hover:border-brand-navy hover:bg-slate-50'
+                              }`}
                           >
                             <div className="relative w-32 aspect-video rounded-lg overflow-hidden bg-slate-950 shrink-0 border border-slate-200">
                               <ChannelThumb
                                 channel={channel}
                                 src={thumbUrl}
-                                className="w-full h-full object-contain"
+                                className="w-full h-full object-fill"
                               />
                               <span className="absolute bottom-1 left-1 bg-brand-red text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded flex items-center gap-1">
                                 <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
@@ -672,11 +668,10 @@ export default function LiveTVPage({ setCurrentView }) {
                           key={v.videoId}
                           type="button"
                           onClick={() => playNewsVideo(v)}
-                          className={`w-full text-left flex gap-3 p-2.5 rounded-xl cursor-pointer transition-all border group ${
-                            isPlaying
-                              ? 'bg-red-50/70 border-brand-red shadow-xs'
-                              : 'bg-white border-slate-200 hover:border-brand-navy hover:bg-slate-50'
-                          }`}
+                          className={`w-full text-left flex gap-3 p-2.5 rounded-xl cursor-pointer transition-all border group ${isPlaying
+                            ? 'bg-red-50/70 border-brand-red shadow-xs'
+                            : 'bg-white border-slate-200 hover:border-brand-navy hover:bg-slate-50'
+                            }`}
                         >
                           <div className="relative w-32 aspect-video rounded-lg overflow-hidden bg-slate-950 shrink-0 border border-slate-200">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -684,7 +679,7 @@ export default function LiveTVPage({ setCurrentView }) {
                               src={`https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg`}
                               alt={v.title}
                               loading="lazy"
-                              className="w-full h-full object-contain"
+                              className="w-full h-full object-fill"
                             />
                             <span className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/35 transition-colors">
                               <span className="w-7 h-7 rounded-full bg-brand-red/90 text-white flex items-center justify-center shadow">
@@ -715,11 +710,10 @@ export default function LiveTVPage({ setCurrentView }) {
                       return (
                         <div
                           key={idx}
-                          className={`p-3 rounded-xl border transition-all ${
-                            live
-                              ? 'bg-red-50/70 border-brand-red shadow-xs'
-                              : 'bg-white border-slate-200'
-                          }`}
+                          className={`p-3 rounded-xl border transition-all ${live
+                            ? 'bg-red-50/70 border-brand-red shadow-xs'
+                            : 'bg-white border-slate-200'
+                            }`}
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <span className="text-[11px] font-mono font-bold text-brand-navy flex items-center gap-1">
@@ -777,17 +771,16 @@ export default function LiveTVPage({ setCurrentView }) {
                   <div
                     key={channel.id}
                     onClick={() => switchChannel(channel.id)}
-                    className={`bg-white rounded-2xl overflow-hidden border transition-all cursor-pointer group flex flex-col ${
-                      isPlaying
-                        ? 'border-brand-red ring-2 ring-brand-red/25 shadow-md'
-                        : 'border-slate-300 hover:border-brand-navy shadow-xs hover:shadow-md'
-                    }`}
+                    className={`bg-white rounded-2xl overflow-hidden border transition-all cursor-pointer group flex flex-col ${isPlaying
+                      ? 'border-brand-red ring-2 ring-brand-red/25 shadow-md'
+                      : 'border-slate-300 hover:border-brand-navy shadow-xs hover:shadow-md'
+                      }`}
                   >
                     <div className="relative aspect-video w-full bg-slate-950 overflow-hidden">
                       <ChannelThumb
                         channel={channel}
                         src={thumbUrl}
-                        className="w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-95"
+                        className="w-full h-full object-fill"
                       />
                       <span className="absolute bottom-2 left-2 bg-brand-red text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
@@ -847,11 +840,10 @@ export default function LiveTVPage({ setCurrentView }) {
                       setVideoLang(k)
                       setVideoLimit(8)
                     }}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer ${
-                      videoLang === k
-                        ? 'bg-brand-navy text-white border-brand-navy'
-                        : 'bg-white text-slate-700 border-slate-300 hover:border-brand-navy'
-                    }`}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer ${videoLang === k
+                      ? 'bg-brand-navy text-white border-brand-navy'
+                      : 'bg-white text-slate-700 border-slate-300 hover:border-brand-navy'
+                      }`}
                   >
                     {label}
                   </button>
@@ -867,11 +859,10 @@ export default function LiveTVPage({ setCurrentView }) {
                     key={v.videoId}
                     type="button"
                     onClick={() => playNewsVideo(v)}
-                    className={`text-left bg-white rounded-2xl overflow-hidden border transition-all group flex flex-col cursor-pointer ${
-                      playing
-                        ? 'border-brand-red ring-2 ring-brand-red/25 shadow-md'
-                        : 'border-slate-300 hover:border-brand-navy shadow-xs hover:shadow-md'
-                    }`}
+                    className={`text-left bg-white rounded-2xl overflow-hidden border transition-all group flex flex-col cursor-pointer ${playing
+                      ? 'border-brand-red ring-2 ring-brand-red/25 shadow-md'
+                      : 'border-slate-300 hover:border-brand-navy shadow-xs hover:shadow-md'
+                      }`}
                   >
                     <div className="relative aspect-video w-full bg-slate-950 overflow-hidden">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -879,7 +870,7 @@ export default function LiveTVPage({ setCurrentView }) {
                         src={`https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg`}
                         alt={v.title}
                         loading="lazy"
-                        className="w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-90"
+                        className="w-full h-full object-fill"
                       />
                       <span className="absolute inset-0 flex items-center justify-center bg-black/15 group-hover:bg-black/30 transition-colors">
                         <span className="w-11 h-11 rounded-full bg-brand-red/95 text-white flex items-center justify-center shadow-lg">

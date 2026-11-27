@@ -471,19 +471,12 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
               activeArticle.images?.find((u) => u && !u.includes('transparent.gif'))
             if (!heroImage) return null
             return (
-              <div className="relative aspect-video rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-slate-950/95 w-full max-w-full min-w-0">
-                <Image
-                  src={proxyImageUrl(heroImage)}
-                  alt=""
-                  aria-hidden="true"
-                  fill
-                  className="object-cover scale-110 blur-xl opacity-45 brightness-75 pointer-events-none"
-                />
+              <div className="relative aspect-video rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-slate-100 w-full max-w-full min-w-0">
                 <Image
                   src={proxyImageUrl(heroImage)}
                   alt={title}
                   fill
-                  className="object-contain w-full h-full"
+                  className="object-fill w-full h-full"
                   priority
                   onError={fallbackToPlaceholder}
                 />
@@ -552,7 +545,7 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
                     <div className="my-6 sm:my-8 space-y-6 w-full min-w-0">
                       {galleryImgs.map((img, idx) => (
                         <div key={idx} className="relative w-full max-w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-slate-100">
-                          <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-contain" onError={fallbackToPlaceholder} />
+                          <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-fill w-full h-full" onError={fallbackToPlaceholder} />
                         </div>
                       ))}
                     </div>
@@ -573,7 +566,7 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
                   <div className="my-6 sm:my-8 space-y-6 w-full min-w-0">
                     {galleryImgs.map((img, idx) => (
                       <div key={idx} className="relative w-full max-w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-slate-100">
-                        <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-contain" onError={fallbackToPlaceholder} />
+                        <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-fill w-full h-full" onError={fallbackToPlaceholder} />
                       </div>
                     ))}
                   </div>

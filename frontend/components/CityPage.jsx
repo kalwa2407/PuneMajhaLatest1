@@ -235,39 +235,34 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         {/* Main Big Article */}
                         <div 
-                            className={`${cityNews.length > 1 ? 'lg:col-span-5' : 'lg:col-span-12'} relative bg-slate-950 border border-slate-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer min-h-[360px] sm:min-h-[460px] flex flex-col justify-end`}
+                            className={`${cityNews.length > 1 ? 'lg:col-span-5' : 'lg:col-span-12'} relative bg-[#0f172a] border border-slate-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer flex flex-col justify-between`}
                             onClick={() => handleNewsClick(cityNews[0])}
                         >
-                            <Image 
-                                src={proxyImageUrl(cityNews[0].mainImage || cityNews[0].images?.[0] || '/placeholder-news.svg')} 
-                                alt=""
-                                aria-hidden="true"
-                                fill 
-                                className="object-cover w-full h-full scale-110 blur-xl opacity-45 brightness-75 pointer-events-none" 
-                            />
-                            <Image 
-                                src={proxyImageUrl(cityNews[0].mainImage || cityNews[0].images?.[0] || '/placeholder-news.svg')} 
-                                alt={getLocalizedText(cityNews[0].title, language)}
-                                fill 
-                                className="object-contain w-full h-full" 
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#0f111a]/95 via-[#0f111a]/45 to-transparent"></div>
-                            
-                            <div className="absolute top-3.5 left-3.5 bg-brand-red text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-md">
-                                {getLocalizedCity(selectedCity || cityNews[0].city || 'Pune', language).toUpperCase()}
-                            </div>
-                            <div className="absolute top-3.5 right-3.5 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-                                {language === 'mr' ? '२ तासांपूर्वी' : language === 'hi' ? '२ घंटे पहले' : '2 hrs ago'}
+                            <div className="relative aspect-video w-full overflow-hidden bg-slate-950">
+                                <Image 
+                                    src={proxyImageUrl(cityNews[0].mainImage || cityNews[0].images?.[0] || '/placeholder-news.svg')} 
+                                    alt={getLocalizedText(cityNews[0].title, language)}
+                                    fill 
+                                    className="object-fill w-full h-full" 
+                                />
+                                <div className="absolute top-3.5 left-3.5 bg-brand-red text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-md">
+                                    {getLocalizedCity(selectedCity || cityNews[0].city || 'Pune', language).toUpperCase()}
+                                </div>
+                                <div className="absolute top-3.5 right-3.5 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                                    {language === 'mr' ? '२ तासांपूर्वी' : language === 'hi' ? '२ घंटे पहले' : '2 hrs ago'}
+                                </div>
                             </div>
                             
-                            <div className="relative z-10 p-5 sm:p-6 w-full">
-                                <h3 className="text-white text-xl sm:text-2xl font-black leading-tight mb-2.5 group-hover:text-blue-100 transition-colors">
-                                    {getLocalizedText(cityNews[0].title, language)}
-                                </h3>
-                                <p className="text-gray-300 text-xs sm:text-sm line-clamp-2 sm:line-clamp-3 mb-4 leading-relaxed font-normal">
-                                    {getLocalizedText(cityNews[0].content, language)?.replace(/<[^>]*>/g, '').substring(0, 140)}...
-                                </p>
-                                <button className="bg-brand-red hover:bg-brand-red-dark text-white text-xs font-black px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-lg">
+                            <div className="relative z-10 p-5 sm:p-6 w-full flex-1 flex flex-col justify-between bg-gradient-to-b from-[#0f172a] to-[#0a0f20]">
+                                <div>
+                                    <h3 className="text-white text-xl sm:text-2xl font-black leading-tight mb-2.5 group-hover:text-blue-100 transition-colors">
+                                        {getLocalizedText(cityNews[0].title, language)}
+                                    </h3>
+                                    <p className="text-gray-300 text-xs sm:text-sm line-clamp-3 mb-4 leading-relaxed font-normal">
+                                        {getLocalizedText(cityNews[0].content, language)?.replace(/<[^>]*>/g, '').substring(0, 160)}...
+                                    </p>
+                                </div>
+                                <button className="self-start bg-brand-red hover:bg-brand-red-dark text-white text-xs font-black px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-lg">
                                     {t('readMore') || 'Read More'} <ChevronRight className="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -283,7 +278,7 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                                                 src={proxyImageUrl(item.mainImage || item.images?.[0] || '/placeholder-news.svg')} 
                                                 alt={getLocalizedText(item.title, language)}
                                                 fill 
-                                                className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95" 
+                                                className="object-fill w-full h-full" 
                                             />
                                             <div className="absolute top-2.5 left-2.5 bg-brand-navy text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-sm">
                                                 {getLocalizedCity(selectedCity || item.city || 'Pune', language).toUpperCase()}

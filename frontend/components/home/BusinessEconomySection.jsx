@@ -87,7 +87,7 @@ export default function BusinessEconomySection({
                     src={proxyImageUrl(resolveNewsImage(item))}
                     alt={getLocalizedText(item.title, language)}
                     fill
-                    className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95"
+                    className="object-fill w-full h-full"
                     onError={fallbackNewsImage}
                   />
                 </div>

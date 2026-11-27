@@ -80,7 +80,7 @@ export const NewsBox = ({ item, onClick, language }) => {
           src={images[currentImageIndex] || siteConfig.assets.placeholderNews}
           alt={title}
           fill
-          className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95"
+          className="object-fill w-full h-full"
           onError={fallbackNewsImage}
           sizes="(max-width: 768px) 100vw, 33vw"
           unoptimized={true}
@@ -160,7 +160,7 @@ export const NewsCard = ({ item, onClick, accentColor = 'red', language }) => {
           src={imgSrc}
           alt={title}
           fill
-          className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95"
+          className="object-fill w-full h-full"
           onError={() => setImgSrc(siteConfig.assets.placeholderNews)}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           unoptimized={true}

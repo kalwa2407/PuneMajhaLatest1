@@ -25,7 +25,7 @@ const ColumnLeadCard = ({ items, title, badgeText, categoryKey, borderClass, bad
       {items[0] && (
         <div onClick={() => onNewsClick(items[0])} className="cursor-pointer group mb-3">
           <div className="relative aspect-video overflow-hidden bg-slate-100 mb-2.5 rounded-xl">
-            <Image src={proxyImageUrl(resolveNewsImage(items[0]))} alt={title} fill className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95" onError={fallbackNewsImage} />
+            <Image src={proxyImageUrl(resolveNewsImage(items[0]))} alt={title} fill className="object-fill w-full h-full" onError={fallbackNewsImage} />
             <Badge className={`absolute top-2.5 left-2.5 ${badgeClass} text-white border-none text-[9px] font-black uppercase px-2.5 py-0.5 tracking-wider rounded-full`}>
               {badgeText}
             </Badge>
@@ -40,7 +40,7 @@ const ColumnLeadCard = ({ items, title, badgeText, categoryKey, borderClass, bad
         {items.slice(1, 3).map((item) => (
           <div key={item.id} onClick={() => onNewsClick(item)} className="flex gap-3 cursor-pointer group py-2.5 last:pb-0">
             <div className="relative w-24 aspect-video flex-shrink-0 overflow-hidden bg-slate-100 rounded-lg">
-              <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-contain w-full h-full" onError={fallbackNewsImage} />
+              <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-fill w-full h-full" onError={fallbackNewsImage} />
             </div>
             <div className="min-w-0">
               <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-brand-navy transition-colors">
@@ -168,7 +168,7 @@ export const PoliticsCrimeLiveSection = ({
                           src={`https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg`}
                           alt={v.title}
                           loading="lazy"
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-fill"
                         />
                         <span className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/35 transition-colors">
                           <span className="w-6 h-6 rounded-full bg-brand-red/90 text-white flex items-center justify-center shadow">
@@ -189,7 +189,7 @@ export const PoliticsCrimeLiveSection = ({
                 : fallbackBulletins.map((item) => (
                     <div key={item.id} onClick={() => onNewsClick(item)} className="flex gap-3 cursor-pointer group py-2.5">
                       <div className="relative w-24 aspect-video flex-shrink-0 overflow-hidden bg-slate-100 rounded-lg">
-                        <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-contain w-full h-full" onError={fallbackNewsImage} />
+                        <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-fill w-full h-full" onError={fallbackNewsImage} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-brand-navy transition-colors">
@@ -258,7 +258,7 @@ export const CategoryGridSection = ({
                     src={proxyImageUrl(resolveNewsImage(item))}
                     alt={getLocalizedText(item.title, language)}
                     fill
-                    className="object-contain transition-opacity duration-300 group-hover:opacity-95"
+                    className="object-fill w-full h-full"
                     onError={fallbackNewsImage}
                   />
                 </div>

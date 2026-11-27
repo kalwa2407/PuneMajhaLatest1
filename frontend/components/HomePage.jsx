@@ -234,6 +234,7 @@ const HomePage = ({ setCurrentView, setSelectedArticle, newsData, setNewsData })
       <PoliticsCrimeLiveSection
         cleanPoliticsNews={cleanPoliticsNews}
         cleanCrimeNews={cleanCrimeNews}
+        cleanLatestNews={cleanLatestNews}
         onNewsClick={handleNewsClick}
         onCategoryClick={handleCategoryClick}
         setCurrentView={setCurrentView}

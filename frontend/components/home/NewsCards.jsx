@@ -28,7 +28,7 @@ export const SafeDate = ({ date, format = 'short', className = '', showClock = f
             ? d.toLocaleDateString()
             : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
       }
-    } catch {}
+    } catch { }
   }
 
   return (
@@ -75,18 +75,18 @@ export const NewsBox = ({ item, onClick, language }) => {
       className="group cursor-pointer overflow-hidden bg-white border border-slate-300 hover:border-brand-navy shadow-xs hover:shadow-lg rounded-2xl transition-all duration-300 mb-4 md:mb-0 flex flex-col h-full relative"
       onClick={() => onClick(item)}
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+      <div className="relative aspect-video overflow-hidden bg-slate-100">
         <Image
           src={images[currentImageIndex] || siteConfig.assets.placeholderNews}
           alt={title}
           fill
-          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+          className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95"
           onError={fallbackNewsImage}
           sizes="(max-width: 768px) 100vw, 33vw"
           unoptimized={true}
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
       </div>
       <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
@@ -155,12 +155,12 @@ export const NewsCard = ({ item, onClick, accentColor = 'red', language }) => {
       className="bg-white rounded-2xl overflow-hidden border border-slate-300 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer group flex flex-col h-full"
       onClick={() => onClick(item)}
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+      <div className="relative aspect-video overflow-hidden bg-slate-100">
         <Image
           src={imgSrc}
           alt={title}
           fill
-          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+          className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95"
           onError={() => setImgSrc(siteConfig.assets.placeholderNews)}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           unoptimized={true}

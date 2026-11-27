@@ -34,12 +34,12 @@ export default function HeroSection({
               onClick={() => onNewsClick(cleanMainNews[0])}
               className="rounded-2xl overflow-hidden bg-white border border-slate-300 shadow-md cursor-pointer group"
             >
-              <div className="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden">
+              <div className="relative aspect-video w-full bg-slate-950/95 overflow-hidden">
                 <Image
                   src={proxyImageUrl(resolveNewsImage(cleanMainNews[0]))}
                   alt={getLocalizedText(cleanMainNews[0].title, language) || 'Lead Story'}
                   fill
-                  className="object-cover w-full h-full"
+                  className="object-contain w-full h-full"
                   priority
                   onError={fallbackNewsImage}
                 />
@@ -94,12 +94,12 @@ export default function HeroSection({
                   onClick={() => onNewsClick(item)}
                   className="w-[240px] shrink-0 snap-start rounded-xl overflow-hidden bg-white border border-gray-200/80 shadow-xs cursor-pointer"
                 >
-                  <div className="relative aspect-[16/10] bg-slate-100">
+                  <div className="relative aspect-video bg-slate-100">
                     <Image
                       src={proxyImageUrl(resolveNewsImage(item))}
                       alt={getLocalizedText(item.title, language) || 'News'}
                       fill
-                      className="object-cover"
+                      className="object-contain"
                       onError={fallbackNewsImage}
                     />
                   </div>
@@ -161,8 +161,8 @@ export default function HeroSection({
               const category = getTranslatedCategory(item.category, t, language)
               return (
                 <div key={item.id} onClick={() => onNewsClick(item)} className="py-3 flex gap-3 items-center cursor-pointer">
-                  <div className="relative w-24 h-16 shrink-0 overflow-hidden bg-slate-100 rounded-lg">
-                    <Image src={proxyImageUrl(resolveNewsImage(item))} alt={title || 'Thumbnail'} fill className="object-cover" onError={fallbackNewsImage} />
+                  <div className="relative w-24 aspect-video shrink-0 overflow-hidden bg-slate-100 rounded-lg">
+                    <Image src={proxyImageUrl(resolveNewsImage(item))} alt={title || 'Thumbnail'} fill className="object-contain" onError={fallbackNewsImage} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-[9px] font-black uppercase tracking-wider text-brand-red block mb-0.5">{category}</span>
@@ -212,8 +212,8 @@ export default function HeroSection({
                       <SafeDate date={item.publishedAt || item.createdAt} format="short" className="text-[10px] text-gray-400" />
                     </div>
                   </div>
-                  <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-slate-100 shrink-0">
-                    <Image src={proxyImageUrl(resolveNewsImage(item))} alt="" fill className="object-cover" onError={fallbackNewsImage} />
+                  <div className="relative w-20 aspect-video rounded-lg overflow-hidden bg-slate-100 shrink-0">
+                    <Image src={proxyImageUrl(resolveNewsImage(item))} alt="" fill className="object-contain" onError={fallbackNewsImage} />
                   </div>
                 </div>
               ))}
@@ -225,13 +225,13 @@ export default function HeroSection({
             {cleanMainNews[0] && (
               <div
                 onClick={() => onNewsClick(cleanMainNews[0])}
-                className="relative overflow-hidden cursor-pointer group bg-slate-900 rounded-2xl shadow-md border border-slate-300 aspect-[16/10]"
+                className="relative overflow-hidden cursor-pointer group bg-slate-950 rounded-2xl shadow-md border border-slate-300 aspect-video"
               >
                 <Image
                   src={proxyImageUrl(resolveNewsImage(cleanMainNews[0]))}
                   alt={getLocalizedText(cleanMainNews[0].title, language)}
                   fill
-                  className="object-cover w-full h-full group-hover:scale-[1.03] transition-transform duration-700"
+                  className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95"
                   priority
                   onError={fallbackNewsImage}
                 />
@@ -271,8 +271,8 @@ export default function HeroSection({
                   onClick={() => onNewsClick(item)}
                   className="bg-white rounded-2xl border border-slate-300 hover:border-brand-navy shadow-xs hover:shadow-md overflow-hidden cursor-pointer group flex flex-col transition-all"
                 >
-                  <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
-                    <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-cover group-hover:scale-105 transition-transform duration-500" onError={fallbackNewsImage} />
+                  <div className="relative aspect-video bg-slate-100 overflow-hidden">
+                    <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-contain transition-opacity duration-300 group-hover:opacity-95" onError={fallbackNewsImage} />
                     {item.category && (
                       <span className="absolute bottom-2 left-2 bg-brand-navy/90 text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                         {getTranslatedCategory(item.category, t, language)}

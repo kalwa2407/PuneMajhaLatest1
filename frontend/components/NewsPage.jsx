@@ -308,7 +308,7 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
             onClick={() => viewArticle(article)}
           >
             {/* Image Container */}
-            <div className="relative overflow-hidden bg-slate-100 w-[118px] shrink-0 self-stretch min-h-[96px] sm:w-full sm:min-h-0 sm:aspect-[16/10]">
+            <div className="relative overflow-hidden bg-slate-100 w-[124px] aspect-video shrink-0 self-center ml-2.5 sm:ml-0 rounded-xl sm:rounded-none sm:w-full sm:aspect-video">
               <Image
                 src={proxyImageUrl(
                   (article.thumbnails && article.thumbnails[0]) ||
@@ -318,8 +318,8 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
                 )}
                 alt={(article && article.title) ? (getLocalizedText(article.title, language) || article.title) : 'News Article'}
                 fill
-                className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-[1.03]"
-                sizes="(max-width: 640px) 118px, (max-width: 1024px) 50vw, 25vw"
+                className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95"
+                sizes="(max-width: 640px) 124px, (max-width: 1024px) 50vw, 25vw"
                 priority={idx === 0}
                 onError={(e) => {
                   e.currentTarget.src = '/placeholder-news.svg';

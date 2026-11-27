@@ -1,8 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Play } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { getLocalizedText } from '@/lib/newsData'
 import { proxyImageUrl } from '@/lib/imageProxy'
@@ -23,8 +24,8 @@ const ColumnLeadCard = ({ items, title, badgeText, categoryKey, borderClass, bad
       </div>
       {items[0] && (
         <div onClick={() => onNewsClick(items[0])} className="cursor-pointer group mb-3">
-          <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 mb-2.5 rounded-xl">
-            <Image src={proxyImageUrl(resolveNewsImage(items[0]))} alt={title} fill className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" onError={fallbackNewsImage} />
+          <div className="relative aspect-video overflow-hidden bg-slate-100 mb-2.5 rounded-xl">
+            <Image src={proxyImageUrl(resolveNewsImage(items[0]))} alt={title} fill className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95" onError={fallbackNewsImage} />
             <Badge className={`absolute top-2.5 left-2.5 ${badgeClass} text-white border-none text-[9px] font-black uppercase px-2.5 py-0.5 tracking-wider rounded-full`}>
               {badgeText}
             </Badge>
@@ -38,8 +39,8 @@ const ColumnLeadCard = ({ items, title, badgeText, categoryKey, borderClass, bad
       <div className="space-y-0 mt-auto divide-y divide-slate-200 border-t border-slate-200 pt-1">
         {items.slice(1, 3).map((item) => (
           <div key={item.id} onClick={() => onNewsClick(item)} className="flex gap-3 cursor-pointer group py-2.5 last:pb-0">
-            <div className="relative w-20 h-14 flex-shrink-0 overflow-hidden bg-slate-100 rounded-lg">
-              <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-cover w-full h-full" onError={fallbackNewsImage} />
+            <div className="relative w-24 aspect-video flex-shrink-0 overflow-hidden bg-slate-100 rounded-lg">
+              <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-contain w-full h-full" onError={fallbackNewsImage} />
             </div>
             <div className="min-w-0">
               <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-brand-navy transition-colors">
@@ -57,11 +58,35 @@ const ColumnLeadCard = ({ items, title, badgeText, categoryKey, borderClass, bad
 export const PoliticsCrimeLiveSection = ({
   cleanPoliticsNews,
   cleanCrimeNews,
+  cleanLatestNews = [],
   onNewsClick,
   onCategoryClick,
   setCurrentView,
 }) => {
   const { t, language } = useLanguage()
+  const [recentVideos, setRecentVideos] = useState([])
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/news-videos')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!active || !Array.isArray(d?.videos)) return
+        const filtered = d.videos.filter((v) => !v.isShort && v.videoId).slice(0, 2)
+        if (filtered.length > 0) setRecentVideos(filtered)
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  const fallbackBulletins = cleanLatestNews.slice(6, 8)
+
+  const openVideoInStudio = (videoId) => {
+    if (typeof window !== 'undefined' && videoId) {
+      window.history.pushState({ view: 'live-tv', videoId }, '', `/?view=live-tv&video=${encodeURIComponent(videoId)}`)
+    }
+    setCurrentView('live-tv')
+  }
 
   return (
     <section className="mb-10 w-full lg:max-w-[1340px] lg:mx-auto px-4 lg:px-6">
@@ -100,7 +125,7 @@ export const PoliticsCrimeLiveSection = ({
           </div>
         )}
 
-        {/* Minimal Editorial Live TV Card matching neighbor columns */}
+        {/* Minimal Editorial Live TV Card matching sibling columns cleanly with zero empty gap */}
         <div className="lg:col-span-4 hidden lg:flex flex-col bg-white rounded-2xl border border-slate-300 p-4 shadow-xs h-full">
           <div className="flex items-center justify-between mb-3.5 border-b-2 border-brand-red pb-2.5">
             <h2 className="text-base font-black text-brand-navy uppercase tracking-wide flex items-center gap-2">
@@ -112,30 +137,79 @@ export const PoliticsCrimeLiveSection = ({
             </button>
           </div>
 
-          <div className="relative aspect-video bg-slate-950 overflow-hidden rounded-xl border border-slate-200 mb-3">
+          <div className="relative aspect-video bg-gradient-to-br from-[#0b132b] via-[#131e3d] to-[#080d1a] overflow-hidden rounded-xl border border-slate-200 mb-3">
             <LazyYouTube videoId={siteConfig.youtube.defaultVideoId} title={`${siteConfig.brand.shortName} Live`} />
           </div>
 
-          <div className="mt-auto space-y-2.5 pt-2 border-t border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-extrabold text-[15px] text-gray-900 leading-snug">{siteConfig.brand.name}</h3>
-                <p className="text-xs text-gray-500 mt-0.5">{t('realNewsRealTime') || 'Real News. Real Time.'}</p>
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-brand-red bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full">
-                {t('live') || 'LIVE'}
-              </span>
+          <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-200">
+            <div className="min-w-0">
+              <h3 className="font-extrabold text-[15px] text-gray-900 leading-snug truncate">{siteConfig.brand.name}</h3>
+              <p className="text-xs text-gray-500 mt-0.5 truncate">{t('realNewsRealTime') || 'Real News. Real Time.'}</p>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setCurrentView('live-tv')}
-              className="w-full py-2.5 px-4 rounded-xl bg-brand-navy hover:bg-brand-red text-white text-xs font-bold flex items-center justify-between transition-colors cursor-pointer"
-            >
-              <span>{t('liveTvBroadcast') || 'Live TV Broadcast'}</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-brand-red bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full">
+              {t('live') || 'LIVE'}
+            </span>
           </div>
+
+          {/* Broadcast Bulletins filling remaining card height cleanly to match Politics & Crime columns */}
+          {(recentVideos.length > 0 || fallbackBulletins.length > 0) && (
+            <div className="flex-1 divide-y divide-slate-200 flex flex-col justify-start">
+              {recentVideos.length > 0
+                ? recentVideos.map((v) => (
+                    <button
+                      key={v.videoId}
+                      type="button"
+                      onClick={() => openVideoInStudio(v.videoId)}
+                      className="w-full text-left flex gap-3 cursor-pointer group py-2.5"
+                    >
+                      <div className="relative w-24 aspect-video flex-shrink-0 overflow-hidden bg-slate-950 rounded-lg">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg`}
+                          alt={v.title}
+                          loading="lazy"
+                          className="w-full h-full object-contain"
+                        />
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/35 transition-colors">
+                          <span className="w-6 h-6 rounded-full bg-brand-red/90 text-white flex items-center justify-center shadow">
+                            <Play className="w-3 h-3 fill-white ml-0.5" />
+                          </span>
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-brand-navy transition-colors">
+                          {v.title}
+                        </h4>
+                        <span className="text-[10px] text-gray-400 mt-1 block truncate">
+                          {v.channel}
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                : fallbackBulletins.map((item) => (
+                    <div key={item.id} onClick={() => onNewsClick(item)} className="flex gap-3 cursor-pointer group py-2.5">
+                      <div className="relative w-24 aspect-video flex-shrink-0 overflow-hidden bg-slate-100 rounded-lg">
+                        <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-contain w-full h-full" onError={fallbackNewsImage} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-[12px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-brand-navy transition-colors">
+                          {getLocalizedText(item.title, language)}
+                        </h4>
+                        <SafeDate date={item.publishedAt || item.createdAt} format="short" className="text-[10px] text-gray-400 mt-1 block" />
+                      </div>
+                    </div>
+                  ))}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setCurrentView('live-tv')}
+            className="mt-auto pt-2.5 w-full py-2.5 px-4 rounded-xl bg-brand-navy hover:bg-brand-red text-white text-xs font-bold flex items-center justify-between transition-colors cursor-pointer"
+          >
+            <span>{t('liveTvBroadcast') || 'Live TV Broadcast'}</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </section>
@@ -179,12 +253,12 @@ export const CategoryGridSection = ({
                 onClick={() => onNewsClick(item)}
                 className="bg-white border border-slate-300 hover:border-brand-navy rounded-2xl p-3 flex gap-4 items-center cursor-pointer group shadow-xs hover:shadow-md transition-all flex-1"
               >
-                <div className="relative w-28 sm:w-36 aspect-[16/10] shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                <div className="relative w-32 sm:w-40 aspect-video shrink-0 overflow-hidden rounded-xl bg-slate-100">
                   <Image
                     src={proxyImageUrl(resolveNewsImage(item))}
                     alt={getLocalizedText(item.title, language)}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="object-contain transition-opacity duration-300 group-hover:opacity-95"
                     onError={fallbackNewsImage}
                   />
                 </div>

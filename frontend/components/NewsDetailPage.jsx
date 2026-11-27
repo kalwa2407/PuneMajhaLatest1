@@ -471,12 +471,19 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
               activeArticle.images?.find((u) => u && !u.includes('transparent.gif'))
             if (!heroImage) return null
             return (
-              <div className="relative aspect-video rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-gray-100 w-full max-w-full min-w-0">
+              <div className="relative aspect-video rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-slate-950/95 w-full max-w-full min-w-0">
+                <Image
+                  src={proxyImageUrl(heroImage)}
+                  alt=""
+                  aria-hidden="true"
+                  fill
+                  className="object-cover scale-110 blur-xl opacity-45 brightness-75 pointer-events-none"
+                />
                 <Image
                   src={proxyImageUrl(heroImage)}
                   alt={title}
                   fill
-                  className="object-cover w-full h-full"
+                  className="object-contain w-full h-full"
                   priority
                   onError={fallbackToPlaceholder}
                 />
@@ -544,8 +551,8 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
                     />
                     <div className="my-6 sm:my-8 space-y-6 w-full min-w-0">
                       {galleryImgs.map((img, idx) => (
-                        <div key={idx} className="relative w-full max-w-full rounded-xl overflow-hidden shadow-sm bg-gray-100" style={{ aspectRatio: '16/10' }}>
-                          <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-cover" onError={fallbackToPlaceholder} />
+                        <div key={idx} className="relative w-full max-w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-slate-100">
+                          <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-contain" onError={fallbackToPlaceholder} />
                         </div>
                       ))}
                     </div>
@@ -565,8 +572,8 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
                   />
                   <div className="my-6 sm:my-8 space-y-6 w-full min-w-0">
                     {galleryImgs.map((img, idx) => (
-                      <div key={idx} className="relative w-full max-w-full rounded-xl overflow-hidden shadow-sm bg-gray-100" style={{ aspectRatio: '16/10' }}>
-                        <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-cover" onError={fallbackToPlaceholder} />
+                      <div key={idx} className="relative w-full max-w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-slate-100">
+                        <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-contain" onError={fallbackToPlaceholder} />
                       </div>
                     ))}
                   </div>

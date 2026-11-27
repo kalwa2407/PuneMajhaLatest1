@@ -235,14 +235,21 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         {/* Main Big Article */}
                         <div 
-                            className={`${cityNews.length > 1 ? 'lg:col-span-5' : 'lg:col-span-12'} relative bg-white border border-slate-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer min-h-[360px] sm:min-h-[460px] flex flex-col justify-end`}
+                            className={`${cityNews.length > 1 ? 'lg:col-span-5' : 'lg:col-span-12'} relative bg-slate-950 border border-slate-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer min-h-[360px] sm:min-h-[460px] flex flex-col justify-end`}
                             onClick={() => handleNewsClick(cityNews[0])}
                         >
                             <Image 
                                 src={proxyImageUrl(cityNews[0].mainImage || cityNews[0].images?.[0] || '/placeholder-news.svg')} 
+                                alt=""
+                                aria-hidden="true"
+                                fill 
+                                className="object-cover w-full h-full scale-110 blur-xl opacity-45 brightness-75 pointer-events-none" 
+                            />
+                            <Image 
+                                src={proxyImageUrl(cityNews[0].mainImage || cityNews[0].images?.[0] || '/placeholder-news.svg')} 
                                 alt={getLocalizedText(cityNews[0].title, language)}
                                 fill 
-                                className="object-cover w-full h-full" 
+                                className="object-contain w-full h-full" 
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0f111a]/95 via-[#0f111a]/45 to-transparent"></div>
                             
@@ -271,12 +278,12 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                             <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                                 {cityNews.slice(1, 5).map((item, idx) => (
                                     <div key={item.id} onClick={() => handleNewsClick(item)} className="bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col border border-slate-300 hover:border-brand-navy">
-                                        <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                                        <div className="relative aspect-video overflow-hidden bg-slate-100">
                                             <Image 
                                                 src={proxyImageUrl(item.mainImage || item.images?.[0] || '/placeholder-news.svg')} 
                                                 alt={getLocalizedText(item.title, language)}
                                                 fill 
-                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" 
+                                                className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95" 
                                             />
                                             <div className="absolute top-2.5 left-2.5 bg-brand-navy text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-sm">
                                                 {getLocalizedCity(selectedCity || item.city || 'Pune', language).toUpperCase()}

@@ -28,7 +28,7 @@ export default function BusinessEconomySection({
   return (
     <>
       <div className="lg:hidden px-4 mb-6">
-        {businessAdSettings?.enabled && <BusinessAdWidget settings={businessAdSettings} t={t} onClick={() => {}} />}
+        {businessAdSettings?.enabled && <BusinessAdWidget settings={businessAdSettings} t={t} onClick={() => { }} />}
       </div>
 
       <section className="mb-10 w-full lg:max-w-[1340px] lg:mx-auto px-4 lg:px-6">
@@ -82,12 +82,12 @@ export default function BusinessEconomySection({
                 onClick={() => onNewsClick(item)}
                 className="cursor-pointer group bg-white border border-slate-300 hover:border-brand-navy rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col"
               >
-                <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                <div className="relative aspect-video overflow-hidden bg-slate-100">
                   <Image
                     src={proxyImageUrl(resolveNewsImage(item))}
                     alt={getLocalizedText(item.title, language)}
                     fill
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                    className="object-contain w-full h-full transition-opacity duration-300 group-hover:opacity-95"
                     onError={fallbackNewsImage}
                   />
                 </div>

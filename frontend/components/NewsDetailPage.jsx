@@ -3,12 +3,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { Eye, Clock, ArrowLeft, Share2, Bookmark, Facebook, Twitter, MessageCircle, Quote } from 'lucide-react'
+import { Eye, Clock, ArrowLeft, ArrowRight, Bookmark, Check, Facebook, MessageCircle, Copy, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import { getLocalizedText, getTranslatedCategory } from '@/lib/newsData'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { getArticleAdSettings } from '@/lib/contentStore'
 import { news } from '@/lib/api'
 import DOMPurify from 'dompurify'
 import { formatArticleHtml, stripMarkdown } from '@/lib/articleFormat'
@@ -32,10 +30,6 @@ const fallbackToPlaceholder = (e) => {
   }
 }
 
-/**
- * SECURITY: Sanitize HTML content to prevent XSS attacks.
- * Only allows safe formatting tags — strips all scripts, event handlers, and dangerous attributes.
- */
 const SANITIZE_CONFIG = {
   ALLOWED_TAGS: [
     'p', 'br', 'b', 'i', 'em', 'strong', 'u', 's', 'strike',
@@ -50,15 +44,90 @@ const SANITIZE_CONFIG = {
   ],
   ALLOW_DATA_ATTR: false,
   ADD_ATTR: ['target'],
-};
-
-function sanitizeHtml(html) {
-  if (!html) return '';
-  if (typeof window === 'undefined') return html; // SSR fallback
-  return DOMPurify.sanitize(formatArticleHtml(html), SANITIZE_CONFIG);
 }
 
-// Share buttons: links point at /news/<id>, which serves preview tags (headline + photo).
+function normalizeBrandText(text) {
+  return String(text || '')
+    .replace(/\bPune\s+my\s+news\.?/gi, `${siteConfig.brand.name}.`)
+    .replace(/पुणे मेरी खबर\.?/g, 'पुणे माझा न्यूज़.')
+    .replace(/\.{2,}/g, '.')
+}
+
+/**
+ * Clean machine-translated or Blogger-split paragraph breaks, fix trailing period
+ * fragments (e.g. "<p>...terror</p><p>. Anmol...</p>"), and remove a duplicate
+ * opening deck paragraph when identical to the article summary.
+ */
+function cleanEditorialHtml(rawHtml, cleanSummary) {
+  let html = formatArticleHtml(normalizeBrandText(rawHtml || ''))
+  if (typeof window === 'undefined' || !html) return html
+
+  try {
+    const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html')
+    const root = doc.body.firstElementChild
+    if (!root) return html
+
+    // Merge consecutive plain <p> blocks that were split mid-sentence in Blogger/translations
+    const children = Array.from(root.children)
+    const merged = []
+    for (const node of children) {
+      const prev = merged[merged.length - 1]
+      const isPlainP = (el) => el?.tagName === 'P' && !el.querySelector('img, h1, h2, h3, table, ul, ol')
+      if (prev && isPlainP(prev) && isPlainP(node)) {
+        const prevText = prev.textContent.trim()
+        const nextText = node.textContent.trim()
+        const prevIncomplete = prevText.length > 0 && !/[.!?।॥…:)"”'’]$/.test(prevText)
+        const nextContinues = /^[.,;:!?)|a-z]/.test(nextText)
+        if (prevIncomplete && nextContinues) {
+          const glue = /^[.,;:!?)]/.test(nextText) ? '' : ' '
+          prev.innerHTML = prev.innerHTML.trimEnd() + glue + node.innerHTML.trimStart()
+          node.remove()
+          continue
+        }
+      }
+      merged.push(node)
+    }
+
+    // Drop duplicate opening lead paragraph when it already appears in the article summary deck
+    const firstP = root.querySelector('p')
+    if (firstP && cleanSummary) {
+      const norm = (s) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
+      const pNorm = norm(firstP.textContent)
+      const sNorm = norm(cleanSummary)
+      if (pNorm && sNorm && (pNorm === sNorm || (pNorm.length > 30 && sNorm.startsWith(pNorm.slice(0, 40))) || (sNorm.length > 30 && pNorm.startsWith(sNorm.slice(0, 40))))) {
+        if (root.children.length > 1) firstP.remove()
+      }
+    }
+
+    // Capitalize clean opening character if lowercase ASCII leaked after summary strip
+    const leadP = root.querySelector('p')
+    if (leadP && !leadP.firstElementChild && leadP.firstChild?.nodeType === 3) {
+      leadP.firstChild.nodeValue = leadP.firstChild.nodeValue
+        .replace(/^\s*[.,|]+\s*/, '')
+        .replace(/^([a-z])/, (_, c) => c.toUpperCase())
+    }
+
+    return root.innerHTML
+  } catch {
+    return html
+  }
+}
+
+function sanitizeHtml(html, cleanSummary = '') {
+  if (!html) return ''
+  if (typeof window === 'undefined') return html
+  return DOMPurify.sanitize(cleanEditorialHtml(html, cleanSummary), SANITIZE_CONFIG)
+}
+
+function cleanDeckSummary(rawSummary) {
+  if (!rawSummary) return ''
+  let s = stripMarkdown(normalizeBrandText(rawSummary))
+    // Strip half-cut trailing brand prefixes left from fixed-length RSS excerpts (e.g. "...! Pune Majha News. Satar")
+    .replace(/\s*(Pune\s+(?:my|Majha)\s+News\.?\s*[^.!?]{0,20}|पुणे\s+(?:मेरी\s+खबर|माझा\s+न्युज|माझा\s+न्यूज़)[^.!।?]{0,30})$/i, '')
+    .trim()
+  return s.replace(/^[a-z]/, (c) => c.toUpperCase())
+}
+
 const shareArticle = async (article, target) => {
   if (typeof window === 'undefined' || !article?.id) return
   const url = `${window.location.origin}/news/${encodeURIComponent(article.id)}`
@@ -67,8 +136,7 @@ const shareArticle = async (article, target) => {
   const links = {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
     x: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
-    whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title}
-${url}`)}`,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title}\n${url}`)}`,
   }
   if (target === 'native') {
     if (navigator.share) { try { await navigator.share({ title, url }) } catch {} return }
@@ -78,7 +146,6 @@ ${url}`)}`,
   window.open(links[target], '_blank', 'noopener,noreferrer')
 }
 
-// Byline shown in the author box: the real author, defaulting to the Pune Majha desk.
 const authorDisplayName = (a) => {
   const n = a?.authorName || a?.author?.name
   return !n ? siteConfig.brand.adminAuthorLabel : n
@@ -86,65 +153,31 @@ const authorDisplayName = (a) => {
 
 const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
   const { language, t } = useLanguage()
-  const [fontSizeLevel, setFontSizeLevel] = useState('base') // 'sm' | 'base' | 'lg'
+  const [fontSizeLevel, setFontSizeLevel] = useState('base')
+  const [copiedLink, setCopiedLink] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [newsletterEmail, setNewsletterEmail] = useState('')
+  const [subscribed, setSubscribed] = useState(false)
 
-  // Article page ad settings state
-  const [articleAdSettings, setArticleAdSettings] = useState({
-    banner: { enabled: true, imageUrl: '', linkUrl: '', title: 'Advertise Your Business' },
-    sticky: { enabled: true, imageUrl: '', linkUrl: '', title: 'Premium Ad Space' }
-  })
-
-  // State for latest news from API
   const [latestNews, setLatestNews] = useState([])
   const [relatedNewsFromApi, setRelatedNewsFromApi] = useState([])
 
-  // Load article ad settings on mount
-  useEffect(() => {
-    const loadSettings = () => {
-      const settings = getArticleAdSettings()
-      if (settings) {
-        setArticleAdSettings(settings)
-      }
-    }
-    loadSettings()
-    if (typeof window !== 'undefined') {
-      window.addEventListener('adSettingsChanged', loadSettings)
-      window.addEventListener('storage', loadSettings)
-      return () => {
-        window.removeEventListener('adSettingsChanged', loadSettings)
-        window.removeEventListener('storage', loadSettings)
-      }
-    }
-  }, [])
-
-  // Fetch latest news from API
   useEffect(() => {
     const fetchLatestNews = async () => {
       try {
         const response = await news.getAll({ limit: 20 })
         const articles = response?.articles || response || []
+        if (!Array.isArray(articles)) throw new Error('Invalid response format')
 
-        // Ensure articles is an array
-        if (!Array.isArray(articles)) {
-          throw new Error('Invalid response format')
-        }
-
-        // Sort by date (newest first) and exclude current article
         const sorted = articles
-          .filter(a => a && a.id !== article?.id)
+          .filter((a) => a && a.id !== article?.id)
           .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
 
         setLatestNews(sorted.slice(0, 5))
 
-
-
-        // Find related news by category
         const currentCategory = getLocalizedText(article?.category, 'en')?.toLowerCase() || ''
         if (currentCategory) {
-          const related = sorted.filter(a => {
-            const cat = getLocalizedText(a?.category, 'en')?.toLowerCase() || ''
-            return cat === currentCategory
-          }).slice(0, 4)
+          const related = sorted.filter((a) => (getLocalizedText(a?.category, 'en')?.toLowerCase() || '') === currentCategory).slice(0, 4)
           setRelatedNewsFromApi(related.length > 0 ? related : sorted.slice(0, 4))
         } else {
           setRelatedNewsFromApi(sorted.slice(0, 4))
@@ -155,10 +188,8 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
         setRelatedNewsFromApi([])
       }
     }
-    if (article?.id) {
-      fetchLatestNews()
-    }
-  }, [article?.id])
+    if (article?.id) fetchLatestNews()
+  }, [article?.id, article?.category])
 
   const isSnippetOnly = (art) => {
     if (!art?.id) return false
@@ -180,30 +211,24 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
   useEffect(() => {
     let cancelled = false
     setFullArticle(article)
+    setCopiedLink(false)
     if (isSnippetOnly(article)) {
       setLoadingFullArticle(true)
       news.getOne(article.id)
         .then((res) => {
           if (cancelled) return
           const data = res?.article || res
-          if (data && data.id) {
-            setFullArticle({ ...data, contentPartial: false })
-          }
+          if (data && data.id) setFullArticle({ ...data, contentPartial: false })
         })
         .catch((err) => console.warn('Failed to load full article content:', err))
-        .finally(() => {
-          if (!cancelled) setLoadingFullArticle(false)
-        })
+        .finally(() => { if (!cancelled) setLoadingFullArticle(false) })
     } else {
       setLoadingFullArticle(false)
     }
-    return () => {
-      cancelled = true
-    }
-  }, [article?.id])
+    return () => { cancelled = true }
+  }, [article?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeArticle = fullArticle || article
-
 
   const [dynamicTitle, setDynamicTitle] = useState('')
   const [dynamicSummary, setDynamicSummary] = useState('')
@@ -234,7 +259,6 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
         ? raw.trim()
         : (raw && typeof raw === 'object' ? (raw.hi || raw.mr || raw.en || '').trim() : '')
 
-    // Translate when missing, identical to another language slot (failed 429 fallback), or wrong script
     const needsTranslation = (rawField, targetLang) => {
       if (!rawField) return false
       if (typeof rawField === 'string') {
@@ -297,35 +321,33 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
 
       if (!isCancelled) {
         out.done = true
-        try {
-          sessionStorage.setItem(cacheKey, JSON.stringify(out))
-        } catch {}
+        try { sessionStorage.setItem(cacheKey, JSON.stringify(out)) } catch {}
       }
     }
 
     runDynamicTranslations().catch(() => {})
-
-    return () => {
-      isCancelled = true
-    }
+    return () => { isCancelled = true }
   }, [activeArticle?.id, language, activeArticle?.title, activeArticle?.metaDescription, activeArticle?.content, activeArticle?.contentPartial])
 
-  // Get localized content with dynamic fallback
-  // Early return only after every hook has run (rules of hooks)
-  if (!activeArticle) return null
-
-  const title = dynamicTitle || getLocalizedText(activeArticle.title, language)
-  const category = getTranslatedCategory(activeArticle.category, language)
-  const content = dynamicContent || getLocalizedText(activeArticle.content, language)
-  const summary = dynamicSummary || getLocalizedText(activeArticle.metaDescription || activeArticle.shortDescription || activeArticle.summary, language)
-
-  // Get related news - use API data if available, otherwise fallback to static
   const relatedNews = relatedNewsFromApi
   const sidebarLatest = latestNews.slice(0, 5)
 
-  // Format date based on language
+  const title = dynamicTitle || getLocalizedText(activeArticle?.title, language)
+  const category = getTranslatedCategory(activeArticle?.category, language)
+  const content = dynamicContent || getLocalizedText(activeArticle?.content, language)
+  const rawSummary = dynamicSummary || getLocalizedText(activeArticle?.metaDescription || activeArticle?.shortDescription || activeArticle?.summary, language)
+  const cleanSummary = useMemo(() => cleanDeckSummary(rawSummary), [rawSummary])
+
+  const readMinutes = useMemo(() => {
+    const words = stripMarkdown(content).split(/\s+/).filter(Boolean).length
+    return Math.max(1, Math.round(words / 180))
+  }, [content])
+
+  if (!activeArticle) return null
+
   const formatDate = (dateStr) => {
     const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return ''
     const locale = language === 'mr' ? 'mr-IN' : language === 'hi' ? 'hi-IN' : 'en-IN'
     return date.toLocaleDateString(locale, {
       weekday: 'long',
@@ -333,493 +355,491 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
-  // Handle related news click
-  const handleRelatedClick = (newsItem) => {
-    setSelectedArticle(newsItem)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-
-
-  // Handle back to home
-  const handleBackToHome = () => {
-    if (setCurrentView) {
-      setCurrentView('home')
+  const handleRelatedClick = (item) => {
+    if (typeof window !== 'undefined' && item?.id) {
+      window.history.pushState({ view: 'news-detail', article: item }, '', `/news/${item.id}`)
     }
     if (setSelectedArticle) {
-      setSelectedArticle(null)
+      setSelectedArticle(item)
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleBackToHome = () => {
+    if (typeof window !== 'undefined') window.history.pushState({ view: 'home' }, '', '/')
+    if (setCurrentView) setCurrentView('home')
+  }
+
+  const handleCopyUrl = async () => {
+    if (typeof window === 'undefined' || !activeArticle?.id) return
+    const url = `${window.location.origin}/news/${encodeURIComponent(activeArticle.id)}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedLink(true)
+      setTimeout(() => setCopiedLink(false), 2200)
+    } catch {}
+  }
+
+  const heroYoutubeId = extractYouTubeId(activeArticle.youtubeUrl || activeArticle.videoUrl)
+  const heroImage =
+    activeArticle.mainImage ||
+    activeArticle.thumbnailUrl ||
+    activeArticle.thumbnails?.[0] ||
+    activeArticle.images?.find((u) => u && !u.includes('transparent.gif'))
+
+  const labels = {
+    home: t('home') || (language === 'mr' ? 'मुख्यपृष्ठ' : language === 'hi' ? 'होम' : 'Home'),
+    news: t('news') || (language === 'mr' ? 'बातम्या' : language === 'hi' ? 'समाचार' : 'News'),
+    save: t('save') || (language === 'mr' ? 'जतन करा' : language === 'hi' ? 'सेव' : 'Save'),
+    saved: language === 'mr' ? 'जतन केले' : language === 'hi' ? 'सेव किया' : 'Saved',
+    minRead: language === 'mr' ? `${readMinutes} मिनिटे वाचन` : language === 'hi' ? `${readMinutes} मिनट पढ़ें` : `${readMinutes} min read`,
+    share: language === 'mr' ? 'शेअर' : language === 'hi' ? 'शेयर' : 'Share',
+    copied: language === 'mr' ? 'कॉपी' : language === 'hi' ? 'कॉपी' : 'Copied',
+    deskRole: language === 'mr' ? 'पुणे माझा वृत्त कक्ष' : language === 'hi' ? 'पुणे माझा समाचार डेस्क' : 'Editorial Broadcast Desk',
+    deskTagline: language === 'mr' ? 'निःपक्ष, सत्यापित आणि वेगवान पत्रकारिता' : language === 'hi' ? 'निष्पक्ष, सत्यापित और तेज़ पत्रकारिता' : 'Verified. Independent. Ground-First Reporting.',
+    prev: language === 'mr' ? 'मागील बातमी' : language === 'hi' ? 'पिछला समाचार' : 'Previous Story',
+    next: language === 'mr' ? 'पुढील बातमी' : language === 'hi' ? 'अगला समाचार' : 'Next Story',
+    filePhoto: language === 'mr' ? 'प्रतिनिधी छायाचित्र' : language === 'hi' ? 'फाइल फोटो' : 'Archive Desk Frame',
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 md:py-8 min-w-0 overflow-x-hidden" key={language}>
+    <div className="w-full max-w-[1340px] mx-auto px-4 lg:px-6 py-5 md:py-8 min-w-0 overflow-x-hidden" key={language}>
       <ReadingProgress />
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] md:text-xs font-bold text-gray-500 mb-4 md:mb-6 overflow-hidden whitespace-nowrap min-w-0">
-        <button onClick={handleBackToHome} className="hover:text-red-600 transition-colors cursor-pointer flex items-center gap-1 shrink-0">
-          <ArrowLeft className="w-3 md:w-3.5 h-3 md:h-3.5" /> {t('home') || (language === 'mr' ? 'मुख्यपृष्ठ' : language === 'hi' ? 'होम' : 'Home')}
-        </button>
-        <span className="shrink-0 text-gray-400">&gt;</span>
-        <button onClick={() => {if(setCurrentView) setCurrentView('news')}} className="hover:text-red-600 transition-colors cursor-pointer shrink-0">
-          {t('news') || (language === 'mr' ? 'बातम्या' : language === 'hi' ? 'समाचार' : 'News')}
-        </button>
-        <span className="shrink-0 text-gray-400">&gt;</span>
-        <button className="hover:text-red-600 transition-colors cursor-pointer shrink-0">
-          {category}
-        </button>
-        <span className="shrink-0 text-gray-400">&gt;</span>
-        <span className="text-gray-900 truncate min-w-0 flex-1">{title}</span>
+
+      {/* Editorial Breadcrumb & Controls Ribbon */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-200">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-500 min-w-0">
+          <button type="button" onClick={handleBackToHome} className="hover:text-brand-red transition-colors cursor-pointer inline-flex items-center gap-1.5 shrink-0 text-brand-navy">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>{labels.home}</span>
+          </button>
+          <span className="text-slate-300">/</span>
+          <button type="button" onClick={() => setCurrentView && setCurrentView('news')} className="hover:text-brand-red transition-colors cursor-pointer shrink-0">
+            {labels.news}
+          </button>
+          {category && (
+            <>
+              <span className="text-slate-300">/</span>
+              <span className="text-brand-red font-extrabold uppercase tracking-wide truncate">{category}</span>
+            </>
+          )}
+        </div>
+
+        {/* Reading Font Size + Bookmark + Copy */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex bg-slate-100 rounded-full p-0.5 border border-slate-300">
+            {['sm', 'base', 'lg'].map((lvl, idx) => (
+              <button
+                key={lvl}
+                type="button"
+                onClick={() => setFontSizeLevel(lvl)}
+                className={`px-2.5 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
+                  fontSizeLevel === lvl ? 'bg-brand-navy text-white shadow-xs' : 'text-slate-600 hover:text-brand-navy'
+                }`}
+              >
+                {idx === 0 ? 'A-' : idx === 1 ? 'A' : 'A+'}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSaved((s) => !s)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full border transition-colors cursor-pointer ${
+              saved ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-slate-700 border-slate-300 hover:border-brand-navy'
+            }`}
+          >
+            <Bookmark className={`w-3.5 h-3.5 ${saved ? 'fill-white' : ''}`} />
+            <span>{saved ? labels.saved : labels.save}</span>
+          </button>
+        </div>
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-6 lg:gap-12 w-full min-w-0">
-        {/* Main Article Content */}
-        <article className="lg:col-span-8 space-y-5 sm:space-y-6 select-none w-full min-w-0 overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
-          {/* Header Section */}
-          <div className="space-y-3 sm:space-y-4 w-full min-w-0">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <Badge className="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1 font-bold uppercase text-[11px] border-none rounded-full shrink-0 shadow-sm">
-                {category}
-              </Badge>
-              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                <div className="flex bg-gray-100 rounded-full p-0.5 sm:p-1 border border-gray-200">
-                  <button 
-                    onClick={() => setFontSizeLevel('sm')} 
-                    className={`px-2.5 sm:px-3 py-1 text-xs font-bold rounded-full transition-all ${fontSizeLevel === 'sm' ? 'bg-white text-black shadow-sm' : 'text-gray-600 hover:text-black'}`}
-                    title="Small Font"
-                  >
-                    A-
-                  </button>
-                  <button 
-                    onClick={() => setFontSizeLevel('base')} 
-                    className={`px-2.5 sm:px-3 py-1 text-xs font-bold rounded-full transition-all ${fontSizeLevel === 'base' ? 'bg-white text-black shadow-sm' : 'text-gray-600 hover:text-black'}`}
-                    title="Standard Font"
-                  >
-                    A
-                  </button>
-                  <button 
-                    onClick={() => setFontSizeLevel('lg')} 
-                    className={`px-2.5 sm:px-3 py-1 text-xs font-bold rounded-full transition-all ${fontSizeLevel === 'lg' ? 'bg-white text-black shadow-sm' : 'text-gray-600 hover:text-black'}`}
-                    title="Large Font"
-                  >
-                    A+
-                  </button>
+      <div className="grid lg:grid-cols-12 gap-7 lg:gap-10 w-full min-w-0 items-start">
+        {/* MAIN ARTICLE COLUMN */}
+        <article className="lg:col-span-8 min-w-0 w-full bg-white rounded-2xl border border-slate-300 shadow-xs overflow-hidden">
+          <div className="p-5 sm:p-8 space-y-5">
+            {/* Eyebrow Badge + Location */}
+            <div className="flex flex-wrap items-center gap-2">
+              {category && (
+                <span className="inline-flex items-center gap-1.5 bg-brand-red text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  {category}
+                </span>
+              )}
+              {activeArticle.city && (
+                <span className="text-[11px] font-black uppercase tracking-wider text-brand-navy bg-blue-50 border border-slate-200 px-3 py-1 rounded-full">
+                  {activeArticle.city}
+                </span>
+              )}
+            </div>
+
+            {/* Broadsheet Headline */}
+            <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-heading font-black text-slate-900 leading-[1.2] tracking-tight break-words [overflow-wrap:anywhere]">
+              {title}
+            </h1>
+
+            {/* Crisp Highlight Deck (Zero awkward dropcap) */}
+            {cleanSummary && (
+              <p className="border-l-4 border-brand-red pl-4 py-0.5 text-sm sm:text-base md:text-[17px] font-medium text-slate-600 leading-relaxed break-words">
+                {cleanSummary}
+              </p>
+            )}
+
+            {/* Minimal Byline & Share Strip */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3.5 border-y border-slate-200">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-semibold text-slate-500">
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-brand-navy flex items-center justify-center text-white font-black text-xs shrink-0">
+                    {(authorDisplayName(activeArticle) || 'P').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-slate-900 font-bold">{authorDisplayName(activeArticle)}</span>
                 </div>
-                <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-600 hover:text-black bg-gray-100 rounded-full border border-gray-200 transition-all">
-                  <Bookmark className="w-3.5 h-3.5" /> {t('save') || (language === 'mr' ? 'जतन करा' : language === 'hi' ? 'सुरक्षित करें' : 'Save')}
+                <span className="hidden sm:inline text-slate-300">|</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-brand-red shrink-0" />
+                  {formatDate(activeArticle.publishedAt || activeArticle.createdAt)}
+                </span>
+                <span className="hidden sm:inline text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1 text-brand-navy font-bold">
+                  <Eye className="w-3.5 h-3.5 text-slate-400" />
+                  {labels.minRead}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button type="button" aria-label="Share on WhatsApp" onClick={() => shareArticle(activeArticle, 'whatsapp')} className="w-8 h-8 rounded-full bg-[#25D366] text-white flex items-center justify-center hover:opacity-90 cursor-pointer"><MessageCircle className="w-4 h-4" /></button>
+                <button type="button" aria-label="Share on Facebook" onClick={() => shareArticle(activeArticle, 'facebook')} className="w-8 h-8 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:opacity-90 cursor-pointer"><Facebook className="w-4 h-4" /></button>
+                <button type="button" aria-label="Share on X" onClick={() => shareArticle(activeArticle, 'x')} className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:opacity-90 cursor-pointer">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyUrl}
+                  aria-label="Copy article link"
+                  className="inline-flex items-center gap-1 px-2.5 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold border border-slate-300 cursor-pointer"
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedLink ? labels.copied : labels.share}</span>
                 </button>
               </div>
             </div>
 
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[38px] font-black text-gray-900 leading-[1.15] tracking-tight break-words [overflow-wrap:anywhere] w-full">
-              {title}
-            </h1>
-            
-            {summary && (
-              <p className="text-sm sm:text-base md:text-lg font-medium text-gray-600 leading-snug break-words [overflow-wrap:anywhere] w-full">
-                {stripMarkdown(summary).replace(/^[a-z]/, (c) => c.toUpperCase())}
-              </p>
-            )}
-          </div>
-
-          {/* Author & Meta */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 sm:py-4 border-y border-gray-200 w-full min-w-0">
-            <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-[11px] font-bold text-gray-500 min-w-0">
-              {(article.authorName || article.author?.name) && (
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-brand-navy flex items-center justify-center text-white font-black text-sm shrink-0">
-                    {authorDisplayName(article)?.charAt(0)}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-900 text-xs font-bold">
-                      {authorDisplayName(article)}
-                    </span>
-                    <svg className="w-3.5 h-3.5 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z" />
-                    </svg>
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 border-l border-gray-300 pl-3 sm:pl-4 min-w-0">
-                <span className="flex items-center gap-1.5 shrink-0">
-                  <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                  {formatDate(article.publishedAt || article.createdAt)}
-                </span>
-                <span className="flex items-center gap-1.5 shrink-0">
-                  <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                  {language === 'mr' ? '५ मिनिट वाचन' : language === 'hi' ? '५ मिनट पढ़ें' : '5 min read'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0">
-              <span className="text-[11px] font-bold text-gray-500 mr-1">
-                {language === 'mr' ? 'शेअर करा:' : language === 'hi' ? 'शेयर करें:' : 'Share:'}
-              </span>
-              <button type="button" aria-label="Share on Facebook" onClick={() => shareArticle(article, 'facebook')} className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:opacity-85 active:scale-95 transition"><Facebook className="w-4 h-4" /></button>
-              <button type="button" aria-label="Share on X" onClick={() => shareArticle(article, 'x')} className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-black text-white flex items-center justify-center hover:opacity-85 active:scale-95 transition">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              </button>
-              <button type="button" aria-label="Share on WhatsApp" onClick={() => shareArticle(article, 'whatsapp')} className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-[#25D366] text-white flex items-center justify-center hover:opacity-85 active:scale-95 transition">
-                <MessageCircle className="w-4 h-4" />
-              </button>
-              <button type="button" aria-label="Share" onClick={() => shareArticle(article, 'native')} className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-gray-600 text-white flex items-center justify-center hover:opacity-85 active:scale-95 transition">
-                <Share2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Visual Content: Video or Image */}
-          {(() => {
-            const videoId = extractYouTubeId(activeArticle.youtubeUrl || activeArticle.videoUrl)
-            if (videoId) {
-              return (
-                <div className="relative w-full max-w-full rounded-xl overflow-hidden shadow-sm min-w-0" style={{ paddingTop: '56.25%' }}>
-                  <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&rel=0`}
-                    className="absolute top-0 left-0 w-full h-full"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-              )
-            }
-            const heroImage =
-              activeArticle.mainImage ||
-              activeArticle.thumbnailUrl ||
-              activeArticle.thumbnails?.[0] ||
-              activeArticle.images?.find((u) => u && !u.includes('transparent.gif'))
-            if (!heroImage) return null
-            return (
-              <div className="relative aspect-video rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-slate-100 w-full max-w-full min-w-0">
-                <Image
-                  src={proxyImageUrl(heroImage)}
-                  alt={title}
-                  fill
-                  className="object-fill w-full h-full"
-                  priority
-                  onError={fallbackToPlaceholder}
+            {/* Hero Media Frame */}
+            {heroYoutubeId ? (
+              <div className="relative aspect-video rounded-xl overflow-hidden shadow-xs border border-slate-300 bg-slate-950">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${heroYoutubeId}?rel=0&modestbranding=1`}
+                  title={title}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
                 />
-                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-red-600 text-white text-[9px] font-black tracking-widest px-2.5 py-0.5 rounded shadow-sm">
-                  FILE PHOTO
-                </div>
               </div>
-            )
-          })()}
-
-          {/* Article Body with Inline Gallery Images */}
-          <div className={`text-gray-800 leading-relaxed space-y-6 pb-6 break-words [overflow-wrap:anywhere] article-prose-content w-full min-w-0 ${
-            fontSizeLevel === 'sm' ? 'text-sm sm:text-base' : fontSizeLevel === 'lg' ? 'text-lg sm:text-xl' : 'text-base sm:text-lg'
-          }`}>
-            {loadingFullArticle ? (
-              <div className="space-y-4 animate-pulse py-2">
-                <div className="h-4 bg-slate-200 rounded w-full" />
-                <div className="h-4 bg-slate-200 rounded w-11/12" />
-                <div className="h-4 bg-slate-200 rounded w-5/6" />
-                <div className="h-4 bg-slate-200 rounded w-full mt-4" />
-                <div className="h-4 bg-slate-200 rounded w-4/5" />
-              </div>
-            ) : (() => {
-              const hasTopVideo = Boolean(extractYouTubeId(activeArticle.youtubeUrl || activeArticle.videoUrl))
-              const rawGallery = Array.isArray(activeArticle.galleryImages) ? activeArticle.galleryImages : []
-              const rawThumbs = Array.isArray(activeArticle.thumbnails) ? activeArticle.thumbnails : []
-              const rawImages = Array.isArray(activeArticle.images) ? activeArticle.images : []
-
-              // Include thumbnails when uploaded as gallery (2+ items or distinct from card thumbnail) or when video takes the top slot
-              const extraThumbs = (hasTopVideo || rawThumbs.length > 1 || (rawThumbs.length === 1 && rawThumbs[0] !== activeArticle.thumbnailUrl))
-                ? rawThumbs
-                : []
-
-              // If a YouTube video occupies the top hero slot, keep mainImage visible inside the article body
-              const candidateImgs = [
-                ...(hasTopVideo && activeArticle.mainImage ? [activeArticle.mainImage] : []),
-                ...rawGallery,
-                ...extraThumbs,
-                ...rawImages,
-              ]
-
-              const galleryImgs = candidateImgs.filter(
-                (img, i, arr) =>
-                  img &&
-                  typeof img === 'string' &&
-                  !img.includes('transparent.gif') &&
-                  (hasTopVideo || img !== activeArticle.mainImage) &&
-                  arr.indexOf(img) === i
-              )
-
-              if (galleryImgs.length === 0) {
-                return (
-                  <div
-                    className="space-y-6 article-prose-content break-words [overflow-wrap:anywhere] w-full min-w-0"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
+            ) : heroImage ? (
+              <figure className="space-y-1.5">
+                <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-300 bg-slate-100 w-full">
+                  <Image
+                    src={proxyImageUrl(heroImage)}
+                    alt={title}
+                    fill
+                    className="object-fill w-full h-full"
+                    priority
+                    onError={fallbackToPlaceholder}
                   />
+                </div>
+                <figcaption className="text-[11px] text-slate-400 font-medium flex items-center justify-between px-1">
+                  <span>{labels.filePhoto}</span>
+                  <span>{siteConfig.brand.name}</span>
+                </figcaption>
+              </figure>
+            ) : null}
+
+            {/* Clean Article Reading Body (Zero broken dropcap, auto-merged broken lines) */}
+            <div className={`text-slate-800 leading-relaxed space-y-5 pt-1 pb-4 break-words [overflow-wrap:anywhere] article-prose-content max-w-[74ch] w-full min-w-0 ${
+              fontSizeLevel === 'sm' ? 'text-[15px] sm:text-base' : fontSizeLevel === 'lg' ? 'text-lg sm:text-[20px]' : 'text-base sm:text-[17.5px]'
+            }`}>
+              {loadingFullArticle ? (
+                <div className="space-y-4 animate-pulse py-2">
+                  <div className="h-4 bg-slate-200 rounded w-full" />
+                  <div className="h-4 bg-slate-200 rounded w-11/12" />
+                  <div className="h-4 bg-slate-200 rounded w-5/6" />
+                  <div className="h-4 bg-slate-200 rounded w-full mt-4" />
+                  <div className="h-4 bg-slate-200 rounded w-4/5" />
+                </div>
+              ) : (() => {
+                const hasTopVideo = Boolean(heroYoutubeId)
+                const rawGallery = Array.isArray(activeArticle.galleryImages) ? activeArticle.galleryImages : []
+                const rawThumbs = Array.isArray(activeArticle.thumbnails) ? activeArticle.thumbnails : []
+                const rawImages = Array.isArray(activeArticle.images) ? activeArticle.images : []
+                const extraThumbs = (hasTopVideo || rawThumbs.length > 1 || (rawThumbs.length === 1 && rawThumbs[0] !== activeArticle.thumbnailUrl))
+                  ? rawThumbs
+                  : []
+                const candidateImgs = [
+                  ...(hasTopVideo && activeArticle.mainImage ? [activeArticle.mainImage] : []),
+                  ...rawGallery,
+                  ...extraThumbs,
+                  ...rawImages,
+                ]
+                const galleryImgs = candidateImgs.filter(
+                  (img, i, arr) =>
+                    img &&
+                    typeof img === 'string' &&
+                    !img.includes('transparent.gif') &&
+                    (hasTopVideo || img !== activeArticle.mainImage) &&
+                    arr.indexOf(img) === i
                 )
-              }
 
-              const parts = content ? content.split(/(<\/p>)/i) : ['']
-              const paragraphs = []
-              for (let i = 0; i < parts.length; i += 2) {
-                const text = parts[i] + (parts[i + 1] || '')
-                if (text.trim()) paragraphs.push(text)
-              }
+                const cleanedHtml = sanitizeHtml(content, cleanSummary)
+                if (galleryImgs.length === 0) {
+                  return (
+                    <div
+                      className="space-y-4 article-prose-content break-words [overflow-wrap:anywhere] w-full min-w-0"
+                      dangerouslySetInnerHTML={{ __html: cleanedHtml }}
+                    />
+                  )
+                }
 
-              if (paragraphs.length <= 1) {
+                const parts = cleanedHtml ? cleanedHtml.split(/(<\/p>)/i) : ['']
+                const paragraphs = []
+                for (let i = 0; i < parts.length; i += 2) {
+                  const chunk = parts[i] + (parts[i + 1] || '')
+                  if (chunk.trim()) paragraphs.push(chunk)
+                }
+
+                if (paragraphs.length <= 1) {
+                  return (
+                    <>
+                      <div
+                        className="space-y-4 article-prose-content break-words [overflow-wrap:anywhere] w-full min-w-0"
+                        dangerouslySetInnerHTML={{ __html: cleanedHtml }}
+                      />
+                      <div className="my-6 space-y-5 w-full min-w-0">
+                        {galleryImgs.map((img, idx) => (
+                          <div key={idx} className="relative w-full max-w-full aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                            <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-fill w-full h-full" onError={fallbackToPlaceholder} />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )
+                }
+
+                const insertAfterIdx = Math.min(1, paragraphs.length - 1)
+                const firstPart = paragraphs.slice(0, insertAfterIdx + 1).join('')
+                const secondPart = paragraphs.slice(insertAfterIdx + 1).join('')
+
                 return (
                   <>
                     <div
-                      className="space-y-6 article-prose-content break-words [overflow-wrap:anywhere] w-full min-w-0"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
+                      className="space-y-4 article-prose-content break-words [overflow-wrap:anywhere] w-full min-w-0"
+                      dangerouslySetInnerHTML={{ __html: firstPart }}
                     />
-                    <div className="my-6 sm:my-8 space-y-6 w-full min-w-0">
+                    <div className="my-6 space-y-5 w-full min-w-0">
                       {galleryImgs.map((img, idx) => (
-                        <div key={idx} className="relative w-full max-w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-slate-100">
+                        <div key={idx} className="relative w-full max-w-full aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
                           <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-fill w-full h-full" onError={fallbackToPlaceholder} />
                         </div>
                       ))}
                     </div>
+                    {secondPart && (
+                      <div
+                        className="space-y-4 article-prose-content break-words [overflow-wrap:anywhere] w-full min-w-0"
+                        dangerouslySetInnerHTML={{ __html: secondPart }}
+                      />
+                    )}
                   </>
                 )
-              }
+              })()}
+            </div>
 
-              const insertAfterIdx = Math.min(1, paragraphs.length - 1)
-              const firstPart = paragraphs.slice(0, insertAfterIdx + 1).join('')
-              const secondPart = paragraphs.slice(insertAfterIdx + 1).join('')
-
-              return (
-                <>
-                  <div
-                    className="space-y-6 article-prose-content break-words [overflow-wrap:anywhere] w-full min-w-0"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(firstPart) }}
-                  />
-                  <div className="my-6 sm:my-8 space-y-6 w-full min-w-0">
-                    {galleryImgs.map((img, idx) => (
-                      <div key={idx} className="relative w-full max-w-full aspect-video rounded-xl overflow-hidden shadow-sm bg-slate-100">
-                        <Image src={proxyImageUrl(img)} alt={`${title} - Image ${idx + 2}`} fill className="object-fill w-full h-full" onError={fallbackToPlaceholder} />
-                      </div>
-                    ))}
-                  </div>
-                  {secondPart && (
-                    <div
-                      className="space-y-6 article-prose-content break-words [overflow-wrap:anywhere] w-full min-w-0"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(secondPart) }}
-                    />
-                  )}
-                </>
-              )
-            })()}
-          </div>
-
-          {/* Tags */}
-          <div className={`${activeArticle.tags?.length ? 'flex' : 'hidden'} flex-wrap items-center gap-2 sm:gap-3 pt-5 border-t border-gray-200 w-full min-w-0`}>
-            <span className="text-xs sm:text-sm font-bold text-gray-500 shrink-0">
-              {language === 'mr' ? 'टॅग्ज:' : language === 'hi' ? 'टैग:' : 'Tags:'}
-            </span>
-            {(activeArticle.tags || []).map((tag, idx) => {
-              const tagTranslations = {
-                mr: {
-                  'maharashtra': 'महाराष्ट्र',
-                  'mumbai': 'मुंबई',
-                  'pune': 'पुणे',
-                  'india news': 'भारत बातम्या',
-                  'live tv': 'लाइव्ह टीव्ही',
-                  'business': 'व्यापार',
-                  'economy': 'अर्थव्यवस्था'
-                },
-                hi: {
-                  'maharashtra': 'महाराष्ट्र',
-                  'mumbai': 'मुंबई',
-                  'pune': 'पुणे',
-                  'india news': 'भारत समाचार',
-                  'live tv': 'लाइव टीवी',
-                  'business': 'व्यापार',
-                  'economy': 'अर्थव्यवस्था'
-                }
-              };
-              const tagStr = String(tag).trim();
-              const localizedTag = tagTranslations[language]?.[tagStr.toLowerCase()] || tagStr;
-              return (
-                <Badge key={idx} variant="outline" className="text-gray-600 border-gray-300 font-medium px-3 sm:px-4 py-1 text-xs rounded-full hover:bg-gray-50 transition-colors">
-                  {localizedTag}
-                </Badge>
-              );
-            })}
-          </div>
-
-          {/* Author Box */}
-          <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 border border-gray-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 my-6 sm:my-8 w-full min-w-0 overflow-hidden">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-600 flex items-center justify-center text-white font-black text-xl sm:text-2xl shadow-sm shrink-0">
-                {(authorDisplayName(activeArticle) || 'S').charAt(0).toUpperCase()}
+            {/* Tags */}
+            {Array.isArray(activeArticle.tags) && activeArticle.tags.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 pt-5 border-t border-slate-200">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500 mr-1">
+                  {language === 'mr' ? 'विषय:' : language === 'hi' ? 'टैग:' : 'Topics:'}
+                </span>
+                {activeArticle.tags.map((tag, idx) => (
+                  <Badge key={idx} variant="outline" className="text-brand-navy border-slate-300 bg-slate-50 font-semibold px-3 py-1 text-xs rounded-full">
+                    #{String(tag).trim()}
+                  </Badge>
+                ))}
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <h4 className="font-bold text-gray-900 text-base sm:text-lg truncate">{authorDisplayName(activeArticle)}</h4>
-                  <svg className="w-4 h-4 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z" />
-                  </svg>
+            )}
+
+            {/* Editorial Author Box */}
+            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-12 h-12 rounded-full bg-brand-navy flex items-center justify-center text-white font-black text-lg shrink-0">
+                  {(authorDisplayName(activeArticle) || 'P').charAt(0).toUpperCase()}
                 </div>
-                <p className="text-xs sm:text-sm text-gray-500 font-medium">
-                  {language === 'mr' ? 'वृत्त कक्ष' : language === 'hi' ? 'समाचार कक्ष' : 'News Desk'}
-                </p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-extrabold text-slate-900 text-sm sm:text-base truncate">{authorDisplayName(activeArticle)}</h4>
+                    <svg className="w-4 h-4 text-brand-navy shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z" />
+                    </svg>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium">{labels.deskRole}</p>
+                </div>
               </div>
+              <p className="text-[11px] text-slate-500 font-bold tracking-wide">{labels.deskTagline}</p>
             </div>
-            
-            <div className="flex flex-col items-start md:items-end gap-2.5 shrink-0 w-full md:w-auto">
-              <div className="flex items-center gap-2">
-                <button className="w-8 h-8 rounded-full border border-gray-300 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors"><Facebook className="w-4 h-4" /></button>
-                <button className="w-8 h-8 rounded-full border border-gray-300 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </button>
-                <button className="w-8 h-8 rounded-full border border-gray-300 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
-                </button>
-                <button className="w-8 h-8 rounded-full border border-gray-300 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></button>
-              </div>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                {language === 'mr' ? 'विश्वासार्ह, निष्पक्ष, जनतेसाठी.' : language === 'hi' ? 'विश्वसनीय, निष्पक्ष, जनता के लिए।' : 'Trusted, Unbiased, For the People.'}
-              </p>
-            </div>
-          </div>
 
-          {/* Prev/Next Articles */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full min-w-0">
-            <button className="flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl border border-gray-200 hover:border-red-600 hover:bg-red-50/50 transition-colors text-left group w-full min-w-0 overflow-hidden">
-              <ArrowLeft className="w-5 h-5 text-red-500 group-hover:-translate-x-1 transition-transform shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold text-gray-500 uppercase mb-0.5">
-                  {language === 'mr' ? 'मागील बातमी' : language === 'hi' ? 'पिछला समाचार' : 'Previous Article'}
-                </p>
-                <p className="text-xs sm:text-sm font-medium text-gray-800 line-clamp-2 break-words">
-                  {relatedNews[0] ? getLocalizedText(relatedNews[0].title, language) : (language === 'mr' ? 'महाराष्ट्र राजकीय आणि सामाजिक घडामोडी' : language === 'hi' ? 'महाराष्ट्र राजनीतिक और सामाजिक घटनाक्रम' : 'Maharashtra political and social updates')}
-                </p>
+            {/* Functional Prev / Next Story Cards */}
+            {(relatedNews[0] || relatedNews[1]) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                {relatedNews[0] && (
+                  <button
+                    type="button"
+                    onClick={() => handleRelatedClick(relatedNews[0])}
+                    className="flex items-center gap-3 p-4 rounded-xl border border-slate-300 hover:border-brand-navy hover:bg-slate-50 transition-colors text-left group cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-brand-red group-hover:-translate-x-0.5 transition-transform shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-brand-red mb-0.5">{labels.prev}</p>
+                      <p className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-brand-navy">
+                        {getLocalizedText(relatedNews[0].title, language)}
+                      </p>
+                    </div>
+                  </button>
+                )}
+                {relatedNews[1] && (
+                  <button
+                    type="button"
+                    onClick={() => handleRelatedClick(relatedNews[1])}
+                    className="flex items-center justify-between gap-3 p-4 rounded-xl border border-slate-300 hover:border-brand-navy hover:bg-slate-50 transition-colors text-right group cursor-pointer"
+                  >
+                    <div className="min-w-0 flex-1 text-left sm:text-right">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-brand-navy mb-0.5">{labels.next}</p>
+                      <p className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-brand-navy">
+                        {getLocalizedText(relatedNews[1].title, language)}
+                      </p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-brand-red group-hover:translate-x-0.5 transition-transform shrink-0" />
+                  </button>
+                )}
               </div>
-            </button>
-            <button className="flex items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl border border-gray-200 hover:border-red-600 hover:bg-red-50/50 transition-colors text-right group w-full min-w-0 overflow-hidden">
-              <div className="min-w-0 flex-1 text-left sm:text-right">
-                <p className="text-[11px] font-bold text-gray-500 uppercase mb-0.5">
-                  {language === 'mr' ? 'पुढील बातमी' : language === 'hi' ? 'अगला समाचार' : 'Next Article'}
-                </p>
-                <p className="text-xs sm:text-sm font-medium text-gray-800 line-clamp-2 break-words">
-                  {relatedNews[1] ? getLocalizedText(relatedNews[1].title, language) : (language === 'mr' ? 'सर्वोच्च न्यायालयातील ताज्या सुनावण्या' : language === 'hi' ? 'सुप्रीम कोर्ट की ताज़ा सुनवाई' : 'Latest updates from Supreme Court hearings')}
-                </p>
-              </div>
-              <ArrowLeft className="w-5 h-5 text-red-500 rotate-180 group-hover:translate-x-1 transition-transform shrink-0" />
-            </button>
+            )}
           </div>
         </article>
 
-        {/* Right Sidebar */}
-        <aside className="lg:col-span-4 space-y-6 sm:space-y-8 w-full min-w-0 overflow-hidden">
+        {/* RIGHT EDITORIAL SIDEBAR */}
+        <aside className="lg:col-span-4 space-y-6 w-full min-w-0">
           {/* Related Stories */}
-          <div className="w-full min-w-0">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-1 h-5 bg-red-600 rounded-full shrink-0"></div>
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">
-                {t('relatedStories')}
-              </h3>
-              <button onClick={() => setCurrentView('news')} className="ml-auto text-xs font-bold text-blue-600 hover:underline shrink-0">{t('viewAll') || 'View All'} +</button>
-            </div>
-            
-            <div className="space-y-3 sm:space-y-4 w-full min-w-0">
-              {relatedNews.slice(0, 5).map((item) => (
-                <div
-                  key={item.id}
-                  className="flex gap-3 sm:gap-4 group cursor-pointer bg-white p-2 rounded-xl hover:bg-gray-50 transition-colors w-full min-w-0"
-                  onClick={() => handleRelatedClick(item)}
-                >
-                  <div className="relative w-20 sm:w-24 h-16 sm:h-20 shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                    <Image
-                      src={proxyImageUrl(resolveArticleImage(item))}
-                      alt={getLocalizedText(item.title, language)}
-                      fill
-                      className="object-cover w-full h-full"
-                      onError={fallbackToPlaceholder}
-                    />
-                  </div>
-                  <div className="flex-1 py-0.5 sm:py-1 flex flex-col min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold text-red-600 truncate">{getTranslatedCategory(item.category, language)}</span>
-                      <span className="text-[10px] text-gray-400 shrink-0">{new Date(item.publishedAt || item.createdAt).toLocaleDateString()}</span>
+          {relatedNews.length > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-300 p-4 shadow-xs">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-brand-navy">
+                <h3 className="text-sm font-black uppercase tracking-wider text-brand-navy flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-brand-red" />
+                  {t('relatedStories') || 'Related Stories'}
+                </h3>
+                <button type="button" onClick={() => setCurrentView && setCurrentView('news')} className="text-[11px] font-bold text-brand-red hover:underline cursor-pointer">
+                  {t('viewAll') || 'View All'}
+                </button>
+              </div>
+              <div className="divide-y divide-slate-200">
+                {relatedNews.slice(0, 4).map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleRelatedClick(item)}
+                    className="py-3 first:pt-0 last:pb-0 flex gap-3 items-start cursor-pointer group"
+                  >
+                    <div className="relative w-24 aspect-video shrink-0 rounded-lg overflow-hidden bg-slate-100">
+                      <Image
+                        src={proxyImageUrl(resolveArticleImage(item))}
+                        alt={getLocalizedText(item.title, language)}
+                        fill
+                        className="object-fill w-full h-full"
+                        onError={fallbackToPlaceholder}
+                      />
                     </div>
-                    <h4 className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2 leading-snug break-words">
-                      {getLocalizedText(item.title, language)}
-                    </h4>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-brand-red block mb-0.5 truncate">
+                        {getTranslatedCategory(item.category, language)}
+                      </span>
+                      <h4 className="font-bold text-xs sm:text-[13px] text-slate-900 group-hover:text-brand-navy line-clamp-2 leading-snug">
+                        {getLocalizedText(item.title, language)}
+                      </h4>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Trending Now */}
-          <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 border border-gray-100 w-full min-w-0">
-            <div className="flex items-center gap-2 mb-4 sm:mb-6">
-              <svg className="w-5 h-5 text-red-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">
-                {t('trending') || (language === 'mr' ? 'सध्या ट्रेंडिंग' : language === 'hi' ? 'ट्रेंडिंग समाचार' : 'Trending Now')}
-              </h3>
-            </div>
-            
-            <div className="space-y-4 sm:space-y-5 w-full min-w-0">
-              {sidebarLatest.slice(0, 5).map((newsItem, idx) => (
-                <div
-                  key={newsItem.id}
-                  className="flex gap-3 sm:gap-4 items-center group cursor-pointer w-full min-w-0"
-                  onClick={() => handleRelatedClick(newsItem)}
-                >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white text-gray-400 font-bold text-xs sm:text-sm flex items-center justify-center shrink-0 border border-gray-200">
-                    {idx + 1}
+          {/* Trending Ranked List */}
+          {sidebarLatest.length > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-300 p-4 shadow-xs">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-brand-red">
+                <h3 className="text-sm font-black uppercase tracking-wider text-brand-navy flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-brand-red" />
+                  {t('trending') || (language === 'mr' ? 'सध्या ट्रेंडिंग' : language === 'hi' ? 'ट्रेंडिंग समाचार' : 'Trending Now')}
+                </h3>
+              </div>
+              <div className="divide-y divide-slate-200">
+                {sidebarLatest.slice(0, 5).map((newsItem, idx) => (
+                  <div
+                    key={newsItem.id}
+                    onClick={() => handleRelatedClick(newsItem)}
+                    className="py-2.5 first:pt-0 last:pb-0 flex gap-2.5 items-center cursor-pointer group"
+                  >
+                    <span className="text-xs font-black text-brand-red/80 tabular-nums shrink-0">0{idx + 1}</span>
+                    <div className="relative w-20 aspect-video shrink-0 rounded-md overflow-hidden bg-slate-100">
+                      <Image
+                        src={proxyImageUrl(resolveArticleImage(newsItem))}
+                        alt=""
+                        fill
+                        className="object-fill w-full h-full"
+                        onError={fallbackToPlaceholder}
+                      />
+                    </div>
+                    <p className="font-bold text-xs text-slate-900 group-hover:text-brand-navy line-clamp-2 leading-snug flex-1 min-w-0">
+                      {getLocalizedText(newsItem.title, language)}
+                    </p>
                   </div>
-                  <div className="relative w-14 sm:w-16 h-10 sm:h-12 shrink-0 rounded-md overflow-hidden bg-gray-100">
-                    <Image
-                      src={proxyImageUrl(resolveArticleImage(newsItem))}
-                      alt=""
-                      fill
-                      className="object-cover w-full h-full"
-                      onError={fallbackToPlaceholder}
-                    />
-                  </div>
-                  <p className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2 leading-snug break-words flex-1 min-w-0">
-                    {getLocalizedText(newsItem.title, language)}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Newsletter / Stay Informed */}
-          <div className="bg-gradient-to-br from-brand-navy to-brand-navy-dark rounded-2xl p-6 sm:p-8 relative overflow-hidden text-white shadow-xl w-full min-w-0">
-            <div className="relative z-10 w-full min-w-0">
-              <h3 className="text-xl sm:text-2xl font-black leading-tight mb-2 break-words">
-                {language === 'mr' ? <>पुणे माझा न्यूजसह<br/>माहितीपूर्ण राहा</> : language === 'hi' ? <>पुणे माझा न्यूज़ के साथ<br/>अपडेट रहें</> : <>Stay Informed<br/>with {siteConfig.brand.shortName}</>}
-              </h3>
-              <p className="text-blue-100 text-xs sm:text-sm mb-5 sm:mb-6 leading-relaxed">
-                {language === 'mr' ? 'ताज्या बातम्या, ब्रेकिंग अपडेट्स आणि प्रमुख घडामोडी थेट मिळवा.' : language === 'hi' ? 'ताज़ा ख़बरें, ब्रेकिंग अपडेट्स और शीर्ष कहानियां सीधे प्राप्त करें।' : 'Get the latest news, breaking updates and top stories delivered to you.'}
-              </p>
-              
-              <form className="flex flex-col gap-3 w-full" onSubmit={(e) => e.preventDefault()}>
-                <input 
-                  type="email" 
-                  placeholder={language === 'mr' ? 'तुमचा ईमेल प्रविष्ट करा' : language === 'hi' ? 'अपना ईमेल दर्ज करें' : 'Enter your email'} 
-                  className="w-full px-4 py-3 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red"
-                />
-                <Button className="w-full bg-brand-red hover:bg-brand-red-dark text-white font-bold py-3 rounded-xl transition-colors">
-                  {language === 'mr' ? 'सदस्यता घ्या' : language === 'hi' ? 'सब्सक्राइब करें' : 'Subscribe'}
-                </Button>
-              </form>
-            </div>
-            
-            <div className="absolute top-4 right-4 opacity-20 transform rotate-45 pointer-events-none">
-              <svg className="w-16 h-16 text-white" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-              </svg>
-            </div>
+          {/* Stay Informed Card */}
+          <div className="bg-gradient-to-br from-brand-navy to-brand-navy-dark rounded-2xl p-5 border border-slate-300 text-white shadow-sm">
+            <h3 className="text-lg font-heading font-black leading-tight mb-1.5">
+              {language === 'mr' ? 'पुणे माझा न्यूज अपडेट्स' : language === 'hi' ? 'पुणे माझा न्यूज़ अपडेट्स' : `Stay Informed with ${siteConfig.brand.shortName}`}
+            </h3>
+            <p className="text-blue-100 text-xs mb-4 leading-relaxed">
+              {language === 'mr' ? 'ताज्या बातम्या आणि ग्राउंड रिपोर्ट्स थेट मिळवा.' : language === 'hi' ? 'ताज़ा ख़बरें और ब्रेकिंग अपडेट्स सीधे प्राप्त करें।' : 'Get verified local bulletins and breaking alerts.'}
+            </p>
+            <form
+              className="flex flex-col gap-2.5"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (newsletterEmail.trim()) {
+                  setSubscribed(true)
+                  setNewsletterEmail('')
+                }
+              }}
+            >
+              <input
+                type="email"
+                required
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
+                placeholder={language === 'mr' ? 'तुमचा ईमेल प्रविष्ट करा' : language === 'hi' ? 'अपना ईमेल दर्ज करें' : 'Enter your email'}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white text-slate-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-red"
+              />
+              <Button type="submit" className="w-full bg-brand-red hover:bg-brand-red-dark text-white font-bold text-xs py-2.5 rounded-xl">
+                {subscribed
+                  ? (language === 'mr' ? 'नोंदणी पूर्ण!' : language === 'hi' ? 'सदस्यता सक्रिय!' : 'Subscribed!')
+                  : (language === 'mr' ? 'सदस्यता घ्या' : language === 'hi' ? 'सब्सक्राइब करें' : 'Subscribe')}
+              </Button>
+            </form>
           </div>
         </aside>
       </div>

@@ -13,7 +13,81 @@ const WhatsAppIcon = ({ className }) => (
 export function JoinNetworkBanner({ onOpenModal }) {
   const { t, language } = useLanguage()
   return (
-    <section className="w-full my-8 px-4 lg:px-6 max-w-[1340px] mx-auto">
+    <>
+      {/* StarNews v1 Dark Gradient Reporter Network (Mobile) */}
+      <section className="lg:hidden w-full my-8 px-4">
+        <div className="relative rounded-3xl bg-gradient-to-r from-[#0b1128] via-[#162152] to-[#0b1128] border border-blue-400/20 shadow-[0_20px_50px_rgba(30,41,107,0.28)] p-6 sm:p-8 overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-red/15 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-brand-navy-light/25 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
+
+          <div className="relative z-10 flex flex-col justify-between gap-7">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-brand-red text-white font-black text-[10px] uppercase tracking-widest shadow-md">
+                  {siteConfig.brand.shortName.toUpperCase()} JOURNALISM NETWORK
+                </span>
+                <span className="px-3 py-1 rounded-full bg-white/10 text-gray-200 font-semibold text-[11px] backdrop-blur-sm border border-white/10">
+                  Official Stringer &amp; Citizen Program
+                </span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">
+                {language === 'mr' ? 'अधिकृत ग्राउंड रिपोर्टर व्हा' : language === 'hi' ? 'अधिकृत ग्राउंड रिपोर्टर बनें' : 'Become a Verified Ground Reporter'} • <span className="text-red-400">{language === 'mr' ? 'तुमच्या शहराचा आवाज' : language === 'hi' ? 'अपने शहर की आवाज़' : 'Voice of Your City'}</span>
+              </h2>
+              <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
+                {language === 'mr'
+                  ? 'पुणे आणि महाराष्ट्रातील वाचकांपर्यंत ताज्या घडामोडी, जनतेचे प्रश्न आणि स्थानिक बातम्या थेट पोहोचवा. अधिकृत ओळखपत्र आणि सन्मान मिळवा.'
+                  : language === 'hi'
+                  ? 'पुणे और महाराष्ट्र के पाठकों तक ताज़ा खबरें, जनहित मुद्दे और स्थानीय समाचार सीधे पहुँचाएँ। अधिकृत प्रेस पहचान और प्रोत्साहन प्राप्त करें।'
+                  : 'Report breaking developments, public issues, and community stories directly to readers across Pune and Maharashtra. Get official accreditation, press identity, and performance incentives.'}
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-1 backdrop-blur-sm">
+                  <span className="text-lg">🛡️</span>
+                  <span className="text-white text-xs font-bold leading-tight">Digital Press ID</span>
+                  <span className="text-gray-400 text-[10px]">Verified QR credential</span>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-1 backdrop-blur-sm">
+                  <span className="text-lg">⚡</span>
+                  <span className="text-white text-xs font-bold leading-tight">Instant CMS</span>
+                  <span className="text-gray-400 text-[10px]">Direct byline publishing</span>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-1 backdrop-blur-sm">
+                  <span className="text-lg">💰</span>
+                  <span className="text-white text-xs font-bold leading-tight">Monthly Honors</span>
+                  <span className="text-gray-400 text-[10px]">Performance rewards</span>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-1 backdrop-blur-sm">
+                  <span className="text-lg">📍</span>
+                  <span className="text-white text-xs font-bold leading-tight">36 Districts</span>
+                  <span className="text-gray-400 text-[10px]">Pan-Maharashtra reach</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={onOpenModal}
+                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-red to-rose-600 hover:from-brand-red-dark hover:to-rose-500 text-white font-black text-sm uppercase tracking-wider shadow-xl shadow-red-900/40 flex items-center justify-center gap-2 transition-all active:scale-95 group"
+              >
+                <span>{t('submitApplication') || 'Apply as Ground Reporter'}</span>
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                type="button"
+                onClick={() => window.open('/reporter', '_self')}
+                className="w-full py-3.5 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-white/90 hover:text-white border border-white/15 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all"
+              >
+                <span>{t('login') || 'Already a Reporter? Login'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Broadsheet Reporter Network (Desktop) */}
+      <section className="hidden lg:block w-full my-8 px-4 lg:px-6 max-w-[1340px] mx-auto">
       <div className="bg-white border border-slate-300 border-l-4 border-l-brand-red rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5 max-w-2xl">
           <span className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-red block">
@@ -50,6 +124,7 @@ export function JoinNetworkBanner({ onOpenModal }) {
         </div>
       </div>
     </section>
+    </>
   )
 }
 

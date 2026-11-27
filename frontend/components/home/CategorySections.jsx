@@ -15,31 +15,31 @@ import { resolveNewsImage, fallbackNewsImage } from './newsHelpers'
 const ColumnLeadCard = ({ items, title, badgeText, categoryKey, borderClass, badgeClass, onNewsClick, onCategoryClick, language, t }) => {
   if (!items?.length) return null
   return (
-    <div className="bg-white rounded-2xl border border-slate-300 p-4 shadow-xs h-full flex flex-col">
-      <div className={`flex items-center justify-between mb-3.5 border-b-2 ${borderClass} pb-2.5`}>
-        <h2 className="text-base font-black text-brand-navy uppercase tracking-wide">{title}</h2>
+    <div className="bg-transparent lg:bg-white rounded-none lg:rounded-2xl border-0 lg:border lg:border-slate-300 p-0 lg:p-4 lg:shadow-xs h-full flex flex-col">
+      <div className={`flex items-center justify-between mb-3 lg:mb-3.5 border-b-2 ${borderClass} pb-2 lg:pb-2.5`}>
+        <h2 className="text-lg lg:text-base font-black text-brand-navy lg:uppercase lg:tracking-wide">{title}</h2>
         <button onClick={() => onCategoryClick(categoryKey)} className="text-brand-red text-xs font-bold hover:underline flex items-center gap-0.5">
           {t('viewAll') || 'View All'} <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
       {items[0] && (
         <div onClick={() => onNewsClick(items[0])} className="cursor-pointer group mb-3">
-          <div className="relative aspect-video overflow-hidden bg-slate-100 mb-2.5 rounded-xl">
+          <div className="relative aspect-video overflow-hidden bg-slate-100 mb-2 lg:mb-2.5 rounded-lg lg:rounded-xl">
             <Image src={proxyImageUrl(resolveNewsImage(items[0]))} alt={title} fill className="object-fill w-full h-full" onError={fallbackNewsImage} />
-            <Badge className={`absolute top-2.5 left-2.5 ${badgeClass} text-white border-none text-[9px] font-black uppercase px-2.5 py-0.5 tracking-wider rounded-full`}>
+            <Badge className={`absolute top-2 left-2 lg:top-2.5 lg:left-2.5 ${badgeClass} text-white border-none text-[9px] font-black uppercase px-2 lg:px-2.5 py-0.5 tracking-wider rounded-sm lg:rounded-full`}>
               {badgeText}
             </Badge>
           </div>
-          <h3 className="font-extrabold text-[15px] leading-snug group-hover:text-brand-navy transition-colors mb-1.5 text-gray-900">
+          <h3 className="font-bold lg:font-extrabold text-[14px] lg:text-[15px] leading-tight lg:leading-snug group-hover:text-brand-navy transition-colors mb-1 lg:mb-1.5 text-gray-900">
             {getLocalizedText(items[0].title, language)}
           </h3>
           <SafeDate date={items[0].publishedAt} format="short" showClock={true} className="text-[10px] text-gray-400 flex items-center gap-1" />
         </div>
       )}
-      <div className="space-y-0 mt-auto divide-y divide-slate-200 border-t border-slate-200 pt-1">
+      <div className="space-y-0 mt-auto divide-y divide-gray-100 lg:divide-slate-200 border-t border-gray-100 lg:border-slate-200 pt-1">
         {items.slice(1, 3).map((item) => (
-          <div key={item.id} onClick={() => onNewsClick(item)} className="flex gap-3 cursor-pointer group py-2.5 last:pb-0">
-            <div className="relative w-24 aspect-video flex-shrink-0 overflow-hidden bg-slate-100 rounded-lg">
+          <div key={item.id} onClick={() => onNewsClick(item)} className="flex gap-3 cursor-pointer group py-3 lg:py-2.5 last:pb-0">
+            <div className="relative w-24 aspect-video flex-shrink-0 overflow-hidden bg-slate-100 rounded-md lg:rounded-lg">
               <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-fill w-full h-full" onError={fallbackNewsImage} />
             </div>
             <div className="min-w-0">
@@ -90,7 +90,7 @@ export const PoliticsCrimeLiveSection = ({
 
   return (
     <section className="mb-10 w-full lg:max-w-[1340px] lg:mx-auto px-4 lg:px-6">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-5 items-stretch">
         {cleanPoliticsNews.length > 0 && (
           <div className="lg:col-span-4">
             <ColumnLeadCard
@@ -231,56 +231,63 @@ export const CategoryGridSection = ({
 
   return (
     <section className="mb-12 w-full max-w-[1340px] mx-auto px-4 lg:px-6">
-      <div className="flex items-center justify-between mb-5 border-t-2 border-slate-300 pt-4">
-        <h2 className="text-lg font-black text-brand-navy flex items-center gap-2.5 uppercase tracking-wide">
-          <span className={`w-2 h-5 ${barColor} rounded-full block`} />
+      <div className="flex items-center justify-between mb-5 border-b border-gray-100 lg:border-b-0 lg:border-t-2 lg:border-slate-300 pb-3 lg:pb-0 lg:pt-4">
+        <h2 className="text-lg font-black text-brand-navy flex items-center gap-2 lg:gap-2.5 lg:uppercase lg:tracking-wide">
+          <span className={`w-1.5 lg:w-2 h-5 ${barColor} rounded-full block`} />
           {title}
         </h2>
-        <button onClick={() => onCategoryClick(categoryKey)} className={`${linkColor} text-xs font-extrabold flex items-center gap-1 hover:underline bg-slate-50 px-3 py-1 rounded-full border border-slate-300`}>
+        <button onClick={() => onCategoryClick(categoryKey)} className={`${linkColor} text-xs font-bold lg:font-extrabold flex items-center gap-1 hover:underline lg:bg-slate-50 lg:px-3 lg:py-1 lg:rounded-full lg:border lg:border-slate-300`}>
           {t('viewAll') || 'View All'} <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {variant === 'spotlight' && items.length >= 2 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-          <div className="lg:col-span-5">
-            <NewsBox item={items[0]} onClick={onNewsClick} language={language} />
-          </div>
-          <div className="lg:col-span-7 flex flex-col justify-between gap-3">
-            {items.slice(1, 4).map((item) => (
-              <div
-                key={item.id}
-                onClick={() => onNewsClick(item)}
-                className="bg-white border border-slate-300 hover:border-brand-navy rounded-2xl p-3 flex gap-4 items-center cursor-pointer group shadow-xs hover:shadow-md transition-all flex-1"
-              >
-                <div className="relative w-32 sm:w-40 aspect-video shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                  <Image
-                    src={proxyImageUrl(resolveNewsImage(item))}
-                    alt={getLocalizedText(item.title, language)}
-                    fill
-                    className="object-fill w-full h-full"
-                    onError={fallbackNewsImage}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-sm sm:text-[15px] text-gray-900 leading-snug line-clamp-2 group-hover:text-brand-navy transition-colors">
-                    {getLocalizedText(item.title, language)}
-                  </h3>
-                  <p className="hidden sm:block text-xs text-gray-500 line-clamp-1 mt-1">
-                    {getLocalizedText(item.content, language)?.replace(/<[^>]*>/g, '').substring(0, 110)}
-                  </p>
-                  <SafeDate
-                    date={item.publishedAt || item.createdAt}
-                    format="short"
-                    showClock={true}
-                    clockClassName="w-3 h-3 text-brand-red"
-                    className="text-[10px] font-bold text-gray-400 flex items-center gap-1 mt-2"
-                  />
-                </div>
-              </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
+            {items.slice(0, 4).map((item) => (
+              <NewsBox key={item.id} item={item} onClick={onNewsClick} language={language} />
             ))}
           </div>
-        </div>
+          <div className="hidden lg:grid lg:grid-cols-12 gap-5 items-stretch">
+            <div className="lg:col-span-5">
+              <NewsBox item={items[0]} onClick={onNewsClick} language={language} />
+            </div>
+            <div className="lg:col-span-7 flex flex-col justify-between gap-3">
+              {items.slice(1, 4).map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => onNewsClick(item)}
+                  className="bg-white border border-slate-300 hover:border-brand-navy rounded-2xl p-3 flex gap-4 items-center cursor-pointer group shadow-xs hover:shadow-md transition-all flex-1"
+                >
+                  <div className="relative w-32 sm:w-40 aspect-video shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                    <Image
+                      src={proxyImageUrl(resolveNewsImage(item))}
+                      alt={getLocalizedText(item.title, language)}
+                      fill
+                      className="object-fill w-full h-full"
+                      onError={fallbackNewsImage}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-extrabold text-sm sm:text-[15px] text-gray-900 leading-snug line-clamp-2 group-hover:text-brand-navy transition-colors">
+                      {getLocalizedText(item.title, language)}
+                    </h3>
+                    <p className="hidden sm:block text-xs text-gray-500 line-clamp-1 mt-1">
+                      {getLocalizedText(item.content, language)?.replace(/<[^>]*>/g, '').substring(0, 110)}
+                    </p>
+                    <SafeDate
+                      date={item.publishedAt || item.createdAt}
+                      format="short"
+                      showClock={true}
+                      clockClassName="w-3 h-3 text-brand-red"
+                      className="text-[10px] font-bold text-gray-400 flex items-center gap-1 mt-2"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {items.slice(0, 4).map((item) => (
@@ -296,12 +303,12 @@ export const MoreStoriesSection = ({ oldNews, visibleMoreStories, onLoadMore, on
   const { t, language } = useLanguage()
   return (
     <section className="mb-16 w-full max-w-[1340px] mx-auto px-4 lg:px-6">
-      <div className="flex items-center justify-between mb-6 border-t-2 border-brand-navy pt-4">
-        <h2 className="text-xl font-black text-brand-navy flex items-center gap-2 uppercase tracking-wide">
-          <span className="w-2 h-5 bg-brand-red rounded-full block" />
+      <div className="flex items-center justify-between mb-6 border-b border-gray-200 lg:border-b-0 lg:border-t-2 lg:border-brand-navy pb-3 lg:pb-0 lg:pt-4">
+        <h2 className="text-xl font-black text-brand-navy flex items-center gap-2 lg:uppercase lg:tracking-wide">
+          <span className="w-1.5 lg:w-2 h-5 bg-brand-red rounded-full block" />
           {t('moreStories') || 'More Stories'}
         </h2>
-        <span className="text-xs text-gray-500 font-semibold">{t('exploreAllCategories') || 'Explore all categories & archives'}</span>
+        <span className="text-xs text-gray-400 lg:text-gray-500 font-medium lg:font-semibold">{t('exploreAllCategories') || 'Explore all categories & archives'}</span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {oldNews.slice(6, visibleMoreStories + 6).map((item) => (

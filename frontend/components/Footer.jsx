@@ -20,8 +20,8 @@ const Footer = ({ setCurrentView }) => {
 
   return (
     <footer className="bg-[#0b1128] text-gray-300 mt-12 border-t-4 border-brand-red">
-      {/* Top Motto & Tip Line Band */}
-      <div className="bg-brand-navy border-b border-white/10">
+      {/* Desktop Top Motto & Tip Line Band */}
+      <div className="hidden lg:block bg-brand-navy border-b border-white/10">
         <div className="max-w-[1340px] mx-auto px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}

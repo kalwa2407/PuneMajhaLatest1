@@ -461,8 +461,8 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
 
       <div className="grid lg:grid-cols-12 gap-7 lg:gap-10 w-full min-w-0 items-start">
         {/* MAIN ARTICLE COLUMN */}
-        <article className="lg:col-span-8 min-w-0 w-full bg-white rounded-2xl border border-slate-300 shadow-xs overflow-hidden">
-          <div className="p-5 sm:p-8 space-y-5">
+        <article className="lg:col-span-8 min-w-0 w-full bg-white lg:rounded-2xl lg:border lg:border-slate-300 lg:shadow-xs overflow-hidden">
+          <div className="px-0 py-2 sm:py-3 lg:p-8 space-y-5">
             {/* Eyebrow Badge + Location */}
             <div className="flex flex-wrap items-center gap-2">
               {category && (

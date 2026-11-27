@@ -85,20 +85,18 @@ const BreakingNewsTicker = () => {
   return (
     // NOTE: .ticker-wrapper and .ticker-content animation are defined in globals.css
     // (previously were in a <style jsx> tag which is NOT supported in App Router)
-    <div className="bg-slate-950 border-b border-brand-navy-dark/50 w-full max-w-full min-w-0">
-      <div className="max-w-[1340px] mx-auto px-0 lg:px-6">
-        <div className="overflow-hidden flex h-9 bg-slate-950 w-full min-w-0 items-center">
-          {/* Left: Crimson BREAKING pill */}
-          <div className="bg-brand-red flex items-center gap-2 px-3.5 md:px-4 h-6 rounded-r-full lg:rounded-full shrink-0 relative z-10 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-            <span className="font-black text-white text-[10px] uppercase tracking-[0.16em]">{t('breakingNews') || 'BREAKING'}</span>
-          </div>
-          {/* Right: Crisp newsroom ticker */}
-          <div className="flex-1 flex items-center overflow-hidden pl-4">
-            <div className="ticker-wrapper" key={`${tickerKey}-${language}`}>
-              <div className="ticker-content whitespace-nowrap font-semibold text-[12px] tracking-wide text-slate-100">
-                {tickerContent}{tickerContent}{tickerContent}
-              </div>
+    <div className="overflow-hidden sticky top-0 lg:static z-40 flex h-9 bg-brand-navy-dark lg:bg-slate-950 w-full max-w-full min-w-0 border-b border-white/10 lg:border-brand-navy-dark/50">
+      <div className="w-full lg:max-w-[1340px] lg:mx-auto lg:px-6 flex items-center min-w-0">
+        {/* Left: Crimson BREAKING label */}
+        <div className="breaking-label-container lg:rounded-full bg-brand-red flex items-center gap-2.5 pl-4 pr-6 lg:px-4 lg:h-6 h-full shrink-0 relative z-10 shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          <span className="font-black text-white text-[11px] lg:text-[10px] uppercase tracking-[0.15em]">{t('breakingNews') || 'BREAKING'}</span>
+        </div>
+        {/* Right: Scrolling newsroom ticker */}
+        <div className="flex-1 flex items-center overflow-hidden pl-4 -ml-[2px] lg:ml-0">
+          <div className="ticker-wrapper" key={`${tickerKey}-${language}`}>
+            <div className="ticker-content whitespace-nowrap font-semibold text-[12px] tracking-wide text-gray-100">
+              {tickerContent}{tickerContent}{tickerContent}
             </div>
           </div>
         </div>

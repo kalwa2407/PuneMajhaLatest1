@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { Badge } from '@/components/ui/badge'
 import { Eye, Clock } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { getLocalizedText } from '@/lib/newsData'
@@ -72,7 +73,7 @@ export const NewsBox = ({ item, onClick, language }) => {
 
   return (
     <div
-      className="group cursor-pointer overflow-hidden bg-white border border-slate-300 hover:border-brand-navy shadow-xs hover:shadow-lg rounded-2xl transition-all duration-300 mb-4 md:mb-0 flex flex-col h-full relative"
+      className="premium-card group cursor-pointer overflow-hidden bg-white border border-gray-200/70 md:border-slate-300 hover:border-brand-navy shadow-sm md:shadow-xs hover:shadow-lg rounded-xl md:rounded-2xl transition-all duration-300 mb-4 md:mb-0 flex flex-col h-full relative"
       onClick={() => onClick(item)}
     >
       <div className="relative aspect-video overflow-hidden bg-slate-100">
@@ -86,36 +87,41 @@ export const NewsBox = ({ item, onClick, language }) => {
           unoptimized={true}
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 md:from-black/10 via-transparent to-transparent pointer-events-none" />
+        {category && (
+          <Badge className="md:hidden absolute top-4 left-0 bg-brand-red text-white text-[13px] font-bold px-3 py-1 rounded-l-none rounded-r-md shadow-md z-10 border-none tracking-normal capitalize">
+            {category}
+          </Badge>
+        )}
       </div>
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      <div className="p-5 md:p-4 flex-1 flex flex-col justify-between">
         <div>
           {category && (
-            <div className="flex items-center gap-1.5 mb-2">
+            <div className="hidden md:flex items-center gap-1.5 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-red shrink-0" />
               <span className="text-[10px] font-black uppercase tracking-widest text-brand-navy">
                 {category}
               </span>
             </div>
           )}
-          <h3 className="font-heading font-extrabold text-[17px] md:text-[15px] leading-[1.32] line-clamp-3 md:line-clamp-2 group-hover:text-brand-navy transition-colors tracking-tight text-gray-900">
+          <h3 className="font-heading font-black md:font-extrabold text-2xl md:text-[15px] leading-[1.2] md:leading-[1.32] line-clamp-3 md:line-clamp-2 group-hover:text-brand-navy transition-colors tracking-tight text-gray-900">
             {title}
           </h3>
         </div>
-        <div className="mt-3 pt-2.5 border-t border-slate-200 flex items-center justify-between">
+        <div className="mt-4 md:mt-3 md:pt-2.5 md:border-t md:border-slate-200 flex items-center justify-between">
           <SafeDate
             date={item.publishedAt || item.createdAt}
             format="long"
             showClock={true}
-            clockClassName="w-3 h-3 text-brand-red"
-            className="text-[10px] font-bold text-gray-500 flex items-center gap-1.5"
+            clockClassName="w-3.5 h-3.5 md:w-3 md:h-3 text-brand-red"
+            className="text-[11px] md:text-[10px] font-bold text-gray-500 flex items-center gap-1.5"
           />
-          <span className="text-[10px] font-black text-brand-red uppercase tracking-wide opacity-80 group-hover:opacity-100 transition-opacity">
+          <span className="text-[11px] md:text-[10px] font-black text-brand-red uppercase tracking-tighter md:tracking-wide opacity-0 md:opacity-80 group-hover:opacity-100 transition-opacity">
             {t('readMore') || 'Read →'}
           </span>
         </div>
       </div>
-      <div className="h-[2.5px] w-0 group-hover:w-full bg-gradient-to-r from-brand-navy to-brand-red transition-all duration-300" />
+      <div className="hidden md:block h-[2.5px] w-0 group-hover:w-full bg-gradient-to-r from-brand-navy to-brand-red transition-all duration-300" />
     </div>
   )
 }
@@ -152,7 +158,7 @@ export const NewsCard = ({ item, onClick, accentColor = 'red', language }) => {
 
   return (
     <div
-      className="bg-white rounded-2xl overflow-hidden border border-slate-300 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer group flex flex-col h-full"
+      className="bg-white rounded-xl md:rounded-2xl overflow-hidden border border-gray-100 md:border-slate-300 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer group flex flex-col h-full"
       onClick={() => onClick(item)}
     >
       <div className="relative aspect-video overflow-hidden bg-slate-100">
@@ -167,7 +173,7 @@ export const NewsCard = ({ item, onClick, accentColor = 'red', language }) => {
           referrerPolicy="no-referrer"
         />
         {category && (
-          <span className={`absolute top-2.5 left-2.5 ${badgeBg} text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow`}>
+          <span className={`absolute bottom-2 left-2 md:bottom-auto md:top-2.5 md:left-2.5 ${badgeBg} text-white text-[9px] font-black px-2 py-0.5 rounded md:rounded-full uppercase tracking-wider shadow`}>
             {category}
           </span>
         )}

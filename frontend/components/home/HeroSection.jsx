@@ -86,11 +86,6 @@ export default function HeroSection({
           </div>
         </div>
 
-        {/* Mobile Weather Strip */}
-        <div className="px-4">
-          <WeatherWidget compact className="rounded-2xl shadow-md p-3.5 w-full" />
-        </div>
-
         {/* Mobile Today's Headlines */}
         <div className="mt-8 mb-6">
           <div className="mag-section-header mb-4 px-4 border-l-4 border-brand-red">

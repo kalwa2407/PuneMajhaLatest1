@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getDb } from '@/lib/firebaseAdmin';
 import { getCache, setCache } from '@/lib/cache';
 
+export const dynamic = 'force-dynamic';
+
 const CACHE_KEY = 'categories_all';
 
 // GET: List active categories (Public)

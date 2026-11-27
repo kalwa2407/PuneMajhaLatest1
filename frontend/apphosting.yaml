@@ -1,0 +1,37 @@
+# Firebase App Hosting config (frontend + API routes).
+# Only PUBLIC values here (they ship to the browser anyway). The server uses the
+# backend's own Google credentials, so no service-account private key is stored.
+runConfig:
+  minInstances: 0
+  maxInstances: 5
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 1024
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyB36Tbi0q4kGmmgFCrBmuhRYmbxrAwExNY"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "punemajha.firebaseapp.com"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "punemajha"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "punemajha.firebasestorage.app"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "611447033897"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:611447033897:web:4160a70cddd9249be98c38"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_REPORTER_GOOGLE_FORM_URL
+    value: "REPLACE_WITH_NEW_REPORTER_GOOGLE_FORM_URL"
+    availability: [BUILD, RUNTIME]
+  - variable: FIREBASE_PROJECT_ID
+    value: "punemajha"
+    availability: [RUNTIME]
+  - variable: FIREBASE_STORAGE_BUCKET
+    value: "punemajha.firebasestorage.app"
+    availability: [RUNTIME]

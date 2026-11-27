@@ -1,0 +1,133 @@
+// Local QA only: allow the browser to reach the Firebase Auth emulator when it is configured
+// at build time. Empty in production, so the production CSP is unchanged.
+const QA_AUTH_EMULATOR_ORIGIN = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST
+  ? ` http://${process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST}`
+  : ''
+
+const nextConfig = {
+  // fix(P2-CONFIG-01): Removed output: 'standalone'.
+  // Vercel deploys Next.js natively — standalone mode conflicts with Vercel's
+  // internal routing and static file serving. Use default (no output setting).
+
+  // perf: Enable gzip response compression for all API and page responses
+  compress: true,
+
+  // perf: Remove X-Powered-By header (saves bytes, hides stack info)
+  poweredByHeader: false,
+
+  // perf: Preconnect hints for Google Fonts
+  optimizeFonts: true,
+
+  images: {
+    unoptimized: true,
+    remotePatterns: [
+      { protocol: 'https', hostname: 'punemajhanews.in' },
+      { protocol: 'https', hostname: 'www.punemajhanews.in' },
+      { protocol: 'https', hostname: 'punemajha.in' },
+      { protocol: 'https', hostname: 'www.punemajha.in' },
+      { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
+      { protocol: 'https', hostname: 'storage.googleapis.com' },
+      { protocol: 'https', hostname: 'picsum.photos' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: 'blogger.googleusercontent.com' },
+      { protocol: 'https', hostname: 'bp.blogspot.com' },
+      { protocol: 'https', hostname: 'i.ytimg.com' },
+      { protocol: 'https', hostname: 'img.youtube.com' },
+    ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
+  webpack(config, { dev }) {
+    if (dev) {
+      config.watchOptions = {
+        poll: 2000,
+        aggregateTimeout: 300,
+        ignored: ['**/node_modules'],
+      };
+    }
+    return config;
+  },
+  onDemandEntries: {
+    // perf: Keep more pages in memory buffer → fewer cold reloads on navigation
+    maxInactiveAge: 30000,
+    pagesBufferLength: 5,
+  },
+  async rewrites() {
+    return [
+      { source: '/enewspaper', destination: '/?view=enewspaper' },
+      { source: '/classifieds', destination: '/?view=classifieds' },
+      { source: '/businesses', destination: '/?view=businesses' },
+      { source: '/city', destination: '/?view=city' },
+      { source: '/live-tv', destination: '/?view=live-tv' },
+      { source: '/livetv', destination: '/?view=live-tv' },
+      { source: '/news', destination: '/?view=news' },
+    ];
+  },
+  async headers() {
+    // Support all deployment domains (Vercel previews, custom domains, localhost)
+    const allowedOrigin = process.env.CORS_ORIGINS || "*";
+    return [
+      {
+        // Fixed site images in /public: cache 30 days (was re-checked on every visit).
+        // Replace an image under a NEW file name if it must change immediately.
+        source: "/:file*.:ext(jpg|jpeg|png|webp|svg|ico|gif)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" },
+        ],
+      },
+      {
+        source: "/(.*).webm",
+        headers: [
+          { key: "Accept-Ranges", value: "bytes" },
+          { key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" },
+        ],
+      },
+      {
+        source: "/(.*).mp4",
+        headers: [
+          { key: "Accept-Ranges", value: "bytes" },
+          { key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" },
+        ],
+      },
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          // perf: Tell browsers to allow DNS prefetching for faster API/CDN lookups
+          { key: "X-DNS-Prefetch-Control", value: "on" },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vercel.live https://*.vercel.live https://apis.google.com https://www.gstatic.com",
+              "worker-src 'self' blob: https://cdn.jsdelivr.net",
+              "style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com https://www.gstatic.com",
+              "font-src 'self' https://fonts.gstatic.com https://vercel.live https://*.vercel.live https://assets.vercel.com data:",
+              "img-src 'self' data: blob: https: http:",
+              "media-src 'self' https://www.youtube.com https://*.youtube.com https://firebasestorage.googleapis.com https://storage.googleapis.com blob:",
+              "frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://vercel.live https://*.vercel.live https://*.firebaseapp.com",
+              `connect-src 'self'${QA_AUTH_EMULATOR_ORIGIN} data: blob: https://cdn.jsdelivr.net https://*.googleapis.com https://*.firebaseio.com https://*.firebase.com https://*.firebaseapp.com wss://*.firebaseio.com https://translate.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://query1.finance.yahoo.com`,
+              "frame-ancestors 'self'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join("; "),
+          },
+          { key: "Access-Control-Allow-Origin", value: allowedOrigin },
+          { key: "Access-Control-Allow-Methods", value: "GET, POST, PUT, DELETE, OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+        ],
+      },
+    ];
+  },
+};
+
+module.exports = nextConfig;
+

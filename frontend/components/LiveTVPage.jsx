@@ -1,0 +1,1014 @@
+'use client';
+
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { extractYouTubeId } from '@/lib/youtube';
+import { siteConfig } from '@/lib/siteConfig';
+import {
+  Tv,
+  Play,
+  Share2,
+  CheckCircle2,
+  Users,
+  Search,
+  Maximize2,
+  Check,
+  ChevronRight,
+  Eye,
+  ThumbsUp,
+  ThumbsDown,
+  MessageSquare,
+  Sun,
+  Moon,
+  Sparkles,
+  Send,
+  Radio,
+  Bookmark,
+  Compass,
+  Smile,
+  Calendar,
+  Clock,
+  Flame,
+  TrendingUp,
+  Music2,
+  Trophy
+} from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+// Helper to extract YouTube ID
+
+/* Thumbnail with a branded fallback: used when the YouTube video no longer exists
+   (server marks thumbAvailable=false) or YouTube returns its 120px grey placeholder. */
+const ChannelThumb = ({ channel, src, className }) => {
+  const [dead, setDead] = useState(!src || channel.thumbAvailable === false)
+  if (dead) {
+    const name = String(channel.channelName || channel.title || 'Live')
+    let h = 0
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360
+    return (
+      <div
+        className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-white select-none"
+        style={{ background: `radial-gradient(120% 90% at 20% 10%, hsl(${h} 70% 42%) 0%, hsl(${(h + 40) % 360} 65% 22%) 55%, #0b0b0f 100%)` }}
+      >
+        <span className="w-9 h-9 rounded-full bg-white/15 backdrop-blur flex items-center justify-center ring-1 ring-white/25">
+          <Radio className="w-4 h-4" />
+        </span>
+        <span className="px-3 text-center text-[11px] font-bold leading-tight line-clamp-2 drop-shadow">{name}</span>
+      </div>
+    )
+  }
+  return (
+    <img
+      src={src}
+      alt={channel.title}
+      loading="lazy"
+      className={className}
+      onLoad={(e) => { if (e.currentTarget.naturalWidth > 0 && e.currentTarget.naturalWidth <= 120) setDead(true) }}
+      onError={() => setDead(true)}
+    />
+  )
+}
+
+const CATEGORIES = [
+  { id: 'all', label: 'All', labelMr: 'सर्व', labelHi: 'सभी', Icon: Flame },
+  { id: 'news', label: 'News & Politics', labelMr: 'बातम्या', labelHi: 'समाचार', Icon: Radio },
+  { id: 'kids', label: 'Kids & Cartoons', labelMr: 'लहान मुले', labelHi: 'कार्टून', Icon: Sparkles },
+  { id: 'business', label: 'Business & Markets', labelMr: 'व्यापार', labelHi: 'बिजनेस', Icon: TrendingUp },
+  { id: 'devotional', label: 'Live Darshan', labelMr: 'देवदर्शन', labelHi: 'दर्शन', Icon: Sun },
+  { id: 'music', label: 'Music & Hits', labelMr: 'संगीत', labelHi: 'संगीत', Icon: Music2 },
+  { id: 'sports', label: 'Sports Desk', labelMr: 'क्रीडा', labelHi: 'खेल', Icon: Trophy }
+];
+
+const INITIAL_CHAT_MESSAGES = [
+  { id: 'mod-1', user: `${siteConfig.brand.shortName} Moderator`, text: `Welcome to ${siteConfig.brand.shortName} 24/7 Live Broadcast! Post your comments below. Respect community guidelines.`, time: 'Live', isMod: true, badge: 'Official' }
+];
+
+export default function LiveTVPage({ setCurrentView }) {
+  const { t, language } = useLanguage();
+  
+  // Theme state: 'dark' (YouTube Dark) or 'light' (StarNews Clean Light)
+  const [theme, setTheme] = useState('dark');
+  // Player audio: muted autoplay first (allowed everywhere), sound after one tap
+  const playerRef = useRef(null)
+  const [soundOn, setSoundOn] = useState(false)
+  const unmutePlayer = () => {
+    const win = playerRef.current?.contentWindow
+    if (win) {
+      const send = (func, args = []) => win.postMessage(JSON.stringify({ event: 'command', func, args }), '*')
+      send('unMute')
+      send('setVolume', [100])
+      send('playVideo')
+    }
+    setSoundOn(true)
+  }
+  const [channels, setChannels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeStreamId, setActiveStreamId] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // YouTube UI interactive state
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subCount, setSubCount] = useState(2450000);
+  const [likes, setLikes] = useState(24580);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasDisliked, setHasDisliked] = useState(false);
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [shareToast, setShareToast] = useState('');
+  
+  // Sidebar tab: 'chat' | 'upnext'
+  const [activeSidebarTab, setActiveSidebarTab] = useState('chat');
+  
+  // Live Chat state
+  const [chatMessages, setChatMessages] = useState(INITIAL_CHAT_MESSAGES);
+  const [userComment, setUserComment] = useState('');
+  const chatBottomRef = useRef(null);
+
+  // Initialize theme from localStorage
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('livetv_theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        setTheme(savedTheme);
+      }
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem('livetv_theme', nextTheme);
+    } catch (e) {}
+  };
+
+  // Fetch channels from API
+  useEffect(() => {
+    const fetchChannels = async () => {
+      try {
+        const res = await fetch('/api/live-tv');
+        const data = await res.json();
+        if (data && Array.isArray(data.streams) && data.streams.length > 0) {
+          setChannels(data.streams);
+          setActiveStreamId(data.primaryStreamId || data.streams[0].id);
+        }
+      } catch (err) {
+        console.error('Failed to load Live TV channels:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchChannels();
+  }, []);
+
+  // Latest news videos (YouTube RSS of StarNews + major Marathi/Hindi channels)
+  const [newsVideos, setNewsVideos] = useState([]);
+  const [videoLang, setVideoLang] = useState('all');
+  const [videoLimit, setVideoLimit] = useState(12);
+  useEffect(() => {
+    fetch('/api/news-videos')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d && Array.isArray(d.videos)) setNewsVideos(d.videos.filter((v) => !v.isShort)); })
+      .catch(() => {});
+  }, []);
+
+  const activeChannel = useMemo(() => {
+    return channels.find((ch) => ch.id === activeStreamId) || channels[0] || null;
+  }, [channels, activeStreamId]);
+
+  const youtubeId = useMemo(() => {
+    return activeChannel ? extractYouTubeId(activeChannel.url) || siteConfig.youtube.defaultVideoId : siteConfig.youtube.defaultVideoId;
+  }, [activeChannel]);
+
+  // Mute flag is fixed per video: a new channel starts with sound only if the viewer
+  // already unmuted (their tap allows it). Unmuting itself never reloads the player.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const embedMute = useMemo(() => (soundOn ? 0 : 1), [youtubeId]);
+
+  // Filter channels by Category and Search
+  const filteredChannels = useMemo(() => {
+    return channels.filter((ch) => {
+      const matchCat = selectedCategory === 'all' || ch.category === selectedCategory;
+      const matchSearch =
+        !searchQuery.trim() ||
+        ch.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ch.channelName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ch.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchCat && matchSearch;
+    });
+  }, [channels, selectedCategory, searchQuery]);
+
+  const switchChannel = useCallback((id) => {
+    setActiveStreamId(id);
+    setIsSubscribed(false);
+    setHasLiked(false);
+    setHasDisliked(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+
+  // Play a news video in the main player (added as a temporary, non-live entry).
+  const playNewsVideo = (v) => {
+    const id = `vid-${v.videoId}`;
+    setChannels((prev) => (prev.some((c) => c.id === id) ? prev : [...prev, {
+      id, title: v.title, channelName: v.channel, category: 'news-videos',
+      url: `https://www.youtube.com/watch?v=${v.videoId}`,
+      thumbnail: `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
+      isLive: false, isActive: true, description: `${v.channel} • ${new Date(v.published).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}`,
+    }]));
+    switchChannel(id);
+  };
+
+  const handleSubscribeToggle = () => {
+    if (isSubscribed) {
+      setIsSubscribed(false);
+      setSubCount((prev) => prev - 1);
+    } else {
+      setIsSubscribed(true);
+      setSubCount((prev) => prev + 1);
+    }
+  };
+
+  const handleLike = () => {
+    if (hasLiked) {
+      setHasLiked(false);
+      setLikes((prev) => prev - 1);
+    } else {
+      setHasLiked(true);
+      setLikes((prev) => prev + 1);
+      if (hasDisliked) setHasDisliked(false);
+    }
+  };
+
+  const handleDislike = () => {
+    if (hasDisliked) {
+      setHasDisliked(false);
+    } else {
+      setHasDisliked(true);
+      if (hasLiked) {
+        setHasLiked(false);
+        setLikes((prev) => prev - 1);
+      }
+    }
+  };
+
+  const handleShare = () => {
+    if (typeof window !== 'undefined') {
+      const shareUrl = `${window.location.origin}/?view=live-tv`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          setShareToast(language === 'mr' ? 'लाइव्ह लिंक कॉपी झाली!' : language === 'hi' ? 'लाइव लिंक कॉपी हो गया!' : 'Live stream link copied!');
+          setTimeout(() => setShareToast(''), 3000);
+        });
+      }
+    }
+  };
+
+  // Live Chat: Add user message
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!userComment.trim()) return;
+    const newMsg = {
+      id: Date.now(),
+      user: 'You',
+      text: userComment.trim(),
+      time: 'Just now',
+      isMod: false,
+      badge: 'Viewer'
+    };
+    setChatMessages((prev) => [...prev, newMsg]);
+    setUserComment('');
+    setTimeout(() => {
+      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+
+
+  const getCatTitle = (cat) => {
+    if (language === 'mr') return cat.labelMr || cat.label;
+    if (language === 'hi') return cat.labelHi || cat.label;
+    return cat.label;
+  };
+
+  const isDark = theme === 'dark';
+
+  return (
+    <div className={`min-h-screen transition-colors duration-300 ${
+      isDark ? 'bg-[#0f0f0f] text-[#f1f1f1]' : 'bg-[#f9fafb] text-[#0f172a]'
+    }`}>
+      {/* ── 1. YOUTUBE HEADER BAR ── */}
+      <header className={`sticky top-0 z-40 border-b backdrop-blur-md transition-colors ${
+        isDark ? 'bg-[#0f0f0f]/95 border-[#272727]' : 'bg-white/95 border-gray-200 shadow-sm'
+      }`}>
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-3">
+          
+          {/* Left Brand Badge */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-1.5 bg-brand-navy hover:bg-brand-red text-white px-3 py-1.5 rounded-lg shadow-md transition-all cursor-pointer" onClick={() => setCurrentView && setCurrentView('home')}>
+              <Tv className="w-4 h-4 fill-white" />
+              <span className="font-black text-xs tracking-wider uppercase flex items-center gap-1">
+                <span>{siteConfig.brand.shortName}</span>
+                <span className="bg-brand-red text-white text-[9px] px-1.5 py-0.2 rounded font-black tracking-normal">LIVE</span>
+              </span>
+            </div>
+
+            <div className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+              isDark ? 'bg-red-950/40 text-red-400 border border-red-900/50' : 'bg-red-50 text-red-600 border border-red-200'
+            }`}>
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span>{channels.length} {language === 'mr' ? 'चॅनेल्स थेट' : language === 'hi' ? 'लाइव चैनल्स' : 'Live Streams'}</span>
+            </div>
+          </div>
+
+          {/* Center: YouTube Search Bar */}
+          <div className="relative flex-1 max-w-lg hidden sm:block">
+            <Search className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none ${
+              isDark ? 'text-gray-400' : 'text-gray-500'
+            }`} />
+            <input
+              type="text"
+              placeholder={language === 'mr' ? 'चॅनेल, बातमी किंवा विषय शोधा...' : language === 'hi' ? 'चैनल, समाचार या विषय खोजें...' : 'Search live news, cartoons, markets, music...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`w-full rounded-full pl-9 pr-4 py-1.5 text-xs font-medium focus:outline-none transition-all border ${
+                isDark 
+                  ? 'bg-[#121212] border-[#303030] text-white focus:border-red-500 focus:bg-black placeholder-gray-500' 
+                  : 'bg-gray-100 border-gray-300 text-gray-900 focus:border-red-600 focus:bg-white placeholder-gray-400 shadow-inner'
+              }`}
+            />
+          </div>
+
+          {/* Right: Theme Switcher & Back Button */}
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                isDark
+                  ? 'bg-[#272727] hover:bg-[#383838] border-[#3f3f3f] text-yellow-400'
+                  : 'bg-white hover:bg-gray-100 border-gray-300 text-slate-800 shadow-sm'
+              }`}
+              title={isDark ? 'Switch to Clean Light Mode' : 'Switch to YouTube Dark Mode'}
+            >
+              {isDark ? <Sun className="w-3.5 h-3.5 fill-yellow-400" /> : <Moon className="w-3.5 h-3.5 fill-slate-800" />}
+              <span className="hidden sm:inline">{isDark ? 'Light' : 'Dark'}</span>
+            </button>
+
+            {/* Back to Home */}
+            <button
+              onClick={() => setCurrentView && setCurrentView('home')}
+              className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all border ${
+                isDark
+                  ? 'bg-[#212121] hover:bg-[#303030] text-gray-300 border-[#333]'
+                  : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-300 shadow-sm'
+              }`}
+            >
+              ← {language === 'mr' ? 'मुख्य पृष्ठ' : 'Exit'}
+            </button>
+          </div>
+        </div>
+
+        {/* ── YouTube Signature Category Chips ── */}
+        <div className={`border-t px-3 sm:px-6 py-2 overflow-x-auto hide-scrollbar flex items-center gap-2 ${
+          isDark ? 'border-[#272727] bg-[#0f0f0f]' : 'border-gray-100 bg-gray-50/50'
+        }`}>
+          {CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-tight transition-all duration-150 flex items-center gap-1.5 border active:scale-95 ${
+                  isSelected
+                    ? isDark
+                      ? 'bg-white text-black border-white font-bold shadow'
+                      : 'bg-[#0f172a] text-white border-[#0f172a] font-bold shadow-sm'
+                    : isDark
+                    ? 'bg-[#272727] text-gray-300 hover:bg-[#3f3f3f] border-transparent hover:text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-200'
+                }`}
+              >
+                {cat.Icon && <cat.Icon className="w-3.5 h-3.5" />}
+                <span>{getCatTitle(cat)}</span>
+              </button>
+            );
+          })}
+        </div>
+      </header>
+
+      {/* Share Toast */}
+      {shareToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black/90 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl border border-white/20 flex items-center gap-2 animate-bounce">
+          <CheckCircle2 className="w-4 h-4 text-green-400" />
+          <span>{shareToast}</span>
+        </div>
+      )}
+
+      {/* ── 2. MAIN YOUTUBE VIEWPORT WORKSPACE ── */}
+      <div role="region" aria-label="Live TV player and channels" className="max-w-[1600px] mx-auto px-0 sm:px-4 py-0 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          
+          {/* ── LEFT: YOUTUBE MAIN PLAYER & BROADCAST DETAILS ── */}
+          <div className={`${isTheaterMode ? 'lg:col-span-12' : 'lg:col-span-8'} flex flex-col space-y-3`}>
+            
+            {/* Cinema Player Container */}
+            <div className={`relative aspect-video w-full bg-black sm:rounded-2xl overflow-hidden shadow-2xl border ${
+              isDark ? 'border-[#272727]' : 'border-gray-200'
+            }`}>
+              <iframe
+                ref={playerRef}
+                key={`stream-${youtubeId}`}
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=${embedMute}&loop=1&playlist=${youtubeId}&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
+                title={activeChannel?.title || 'Live Stream Player'}
+                className="w-full h-full object-cover"
+                style={{ border: 'none' }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+
+              {/* Browsers block autoplay with sound, so the stream starts muted.
+                  One tap unmutes via the YouTube iframe API (no reload). */}
+              {!soundOn && (
+                <button
+                  type="button"
+                  onClick={unmutePlayer}
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/70 hover:bg-black/85 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-full border border-white/15 shadow-xl"
+                >
+                  <span aria-hidden="true">🔇</span> Tap to unmute
+                </button>
+              )}
+
+              {/* Top YouTube Live Indicator */}
+              <div className="absolute top-3 left-3 z-10 flex items-center gap-2 pointer-events-none">
+                {activeChannel?.isLive === false ? (
+                  <span className="bg-black/70 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded shadow-lg tracking-wider">News Video</span>
+                ) : (
+                <span className="flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded shadow-lg tracking-wider">
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                  <span>LIVE</span>
+                </span>
+                )}
+                <span className="bg-black/70 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/10">
+                  1080p Full HD
+                </span>
+              </div>
+            </div>
+
+            {/* Video Title & Actions */}
+            <div className="px-4 sm:px-0 space-y-3">
+              <h1 className={`text-base sm:text-xl md:text-2xl font-black leading-tight tracking-tight ${
+                isDark ? 'text-white' : 'text-gray-900'
+              }`}>
+                {activeChannel?.title || `${siteConfig.brand.name} 24/7 Live Stream`}
+              </h1>
+
+              {/* YouTube Channel Bar & Interactive Buttons */}
+              <div className={`flex flex-wrap items-center justify-between gap-3 pt-1 pb-3 border-b ${
+                isDark ? 'border-[#272727]' : 'border-gray-200'
+              }`}>
+                {/* Channel Profile */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-red-600 text-white font-black text-sm flex items-center justify-center shadow shrink-0">
+                    {activeChannel?.channelName?.[0] || 'S'}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className={`font-bold text-sm leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {activeChannel?.channelName || siteConfig.brand.name}
+                      </h3>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 fill-blue-500/20" />
+                    </div>
+                    <p className={`text-[11px] font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {(subCount / 1000000).toFixed(2)}M subscribers
+                    </p>
+                  </div>
+
+                  {/* YouTube Red Subscribe Button */}
+                  <button
+                    onClick={handleSubscribeToggle}
+                    className={`ml-2 px-4 py-2 rounded-full text-xs font-black tracking-wide transition-all duration-200 flex items-center gap-1.5 shadow ${
+                      isSubscribed
+                        ? isDark
+                          ? 'bg-[#272727] text-gray-300 hover:bg-[#383838]'
+                          : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                        : 'bg-red-600 hover:bg-red-700 text-white active:scale-95'
+                    }`}
+                  >
+                    {isSubscribed ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Subscribed</span>
+                      </>
+                    ) : (
+                      <span>Subscribe</span>
+                    )}
+                  </button>
+                </div>
+
+                {/* Right: Like, Dislike, Share, Theater */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {/* Like / Dislike Pill */}
+                  <div className={`flex items-center rounded-full border overflow-hidden ${
+                    isDark ? 'bg-[#272727] border-[#383838]' : 'bg-gray-100 border-gray-200'
+                  }`}>
+                    <button
+                      onClick={handleLike}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-colors ${
+                        hasLiked ? 'text-red-500' : isDark ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-black'
+                      }`}
+                    >
+                      <ThumbsUp className={`w-3.5 h-3.5 ${hasLiked ? 'fill-red-500' : ''}`} />
+                      <span>{likes.toLocaleString()}</span>
+                    </button>
+                    <div className={`w-px h-4 ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`} />
+                    <button
+                      onClick={handleDislike}
+                      className={`px-3 py-1.5 text-xs font-bold transition-colors ${
+                        hasDisliked ? 'text-red-500' : isDark ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-black'
+                      }`}
+                    >
+                      <ThumbsDown className={`w-3.5 h-3.5 ${hasDisliked ? 'fill-red-500' : ''}`} />
+                    </button>
+                  </div>
+
+                  {/* Share Button */}
+                  <button
+                    onClick={handleShare}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                      isDark ? 'bg-[#272727] border-[#383838] text-gray-300 hover:bg-[#383838]' : 'bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Share</span>
+                  </button>
+
+                  {/* Theater Mode Toggle */}
+                  <button
+                    onClick={() => setIsTheaterMode(!isTheaterMode)}
+                    className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                      isTheaterMode ? 'bg-red-600 text-white border-red-600' : isDark ? 'bg-[#272727] border-[#383838] text-gray-300 hover:bg-[#383838]' : 'bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    title="Toggle Theater Mode"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span className="hidden xl:inline">Cinema</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* YouTube Description Box */}
+              <div className={`p-3.5 rounded-xl text-xs space-y-1.5 border leading-relaxed ${
+                isDark ? 'bg-[#212121] border-[#2e2e2e] text-gray-300' : 'bg-gray-100/80 border-gray-200 text-gray-700'
+              }`}>
+                <div className="flex items-center gap-3 font-black text-[11px]">
+                  <span className="text-red-500 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                    {activeChannel?.viewers || '24.5K'} watching right now
+                  </span>
+                  <span>•</span>
+                  <span>Category: {activeChannel?.category?.toUpperCase()}</span>
+                </div>
+                <p>
+                  {activeChannel?.description || `Ground reports, verified bulletins, and breaking political updates live from ${siteConfig.brand.shortName} broadcast team.`}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ── RIGHT: YOUTUBE DUAL-TAB PANEL (LIVE CHAT / UP NEXT) ── */}
+          <div className={`${isTheaterMode ? 'lg:col-span-12 mt-4' : 'lg:col-span-4'} flex flex-col`}>
+            
+            {/* YouTube Right Panel Container */}
+            <div className={`rounded-2xl border flex flex-col h-[580px] lg:h-[720px] overflow-hidden shadow-lg ${
+              isDark ? 'bg-[#181818] border-[#272727]' : 'bg-white border-gray-200'
+            }`}>
+              
+              {/* Dual Tab Header (Live Chat vs Up Next) */}
+              <div className={`flex items-center border-b p-1.5 gap-1 shrink-0 ${
+                isDark ? 'border-[#272727] bg-[#121212]' : 'border-gray-200 bg-gray-50'
+              }`}>
+                <button
+                  onClick={() => setActiveSidebarTab('chat')}
+                  className={`flex-1 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                    activeSidebarTab === 'chat'
+                      ? isDark
+                        ? 'bg-[#272727] text-white shadow'
+                        : 'bg-white text-gray-900 shadow-sm'
+                      : isDark
+                      ? 'text-gray-400 hover:text-white'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-red-500" />
+                  <span>Live Chat</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse ml-0.5" />
+                </button>
+
+                <button
+                  onClick={() => setActiveSidebarTab('upnext')}
+                  className={`flex-1 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                    activeSidebarTab === 'upnext'
+                      ? isDark
+                        ? 'bg-[#272727] text-white shadow'
+                        : 'bg-white text-gray-900 shadow-sm'
+                      : isDark
+                      ? 'text-gray-400 hover:text-white'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  <Tv className="w-3.5 h-3.5 text-red-500" />
+                  <span>Channels ({filteredChannels.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSidebarTab('schedule')}
+                  className={`flex-1 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                    activeSidebarTab === 'schedule'
+                      ? isDark
+                        ? 'bg-[#272727] text-white shadow'
+                        : 'bg-white text-gray-900 shadow-sm'
+                      : isDark
+                      ? 'text-gray-400 hover:text-white'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5 text-red-500" />
+                  <span>Schedule</span>
+                </button>
+              </div>
+
+              {/* TAB 1: YOUTUBE LIVE CHAT STREAM */}
+              {activeSidebarTab === 'chat' && (
+                <div className="flex-1 flex flex-col min-h-0">
+                  {/* Chat Sub-header */}
+                  <div className={`px-4 py-2 text-[11px] font-bold border-b flex items-center justify-between ${
+                    isDark ? 'border-[#272727] text-gray-400 bg-[#151515]' : 'border-gray-100 text-gray-500 bg-gray-50/50'
+                  }`}>
+                    <span>Top Chat • Live stream</span>
+                    <span className="text-red-500 flex items-center gap-1 font-black">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                      LIVE
+                    </span>
+                  </div>
+
+                  {/* Messages Feed */}
+                  <div className="flex-1 p-3 overflow-y-auto space-y-2.5 hide-scrollbar">
+                    {chatMessages.map((msg) => (
+                      <div key={msg.id} className="flex items-start gap-2.5 text-xs leading-relaxed animate-in fade-in duration-200">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 text-white ${
+                          msg.isMod ? 'bg-red-600 ring-2 ring-red-400/50' : msg.user === 'You' ? 'bg-blue-600' : 'bg-slate-700'
+                        }`}>
+                          {msg.user[0]}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`font-black text-[11px] ${
+                              msg.isMod ? 'text-red-500 font-extrabold' : msg.user === 'You' ? 'text-blue-400' : isDark ? 'text-gray-200' : 'text-gray-800'
+                            }`}>
+                              {msg.user}
+                            </span>
+                            {msg.badge && (
+                              <span className={`text-[8px] font-black uppercase px-1 py-0.2 rounded ${
+                                msg.isMod ? 'bg-red-600 text-white' : isDark ? 'bg-[#333] text-gray-300' : 'bg-gray-200 text-gray-700'
+                              }`}>
+                                {msg.badge}
+                              </span>
+                            )}
+                            <span className={`text-[9px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{msg.time}</span>
+                          </div>
+                          <p className={`text-[12px] break-words mt-0.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {msg.text}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={chatBottomRef} />
+                  </div>
+
+                  {/* Chat Input Bar */}
+                  <form onSubmit={handleSendMessage} className={`p-2.5 border-t flex items-center gap-2 ${
+                    isDark ? 'border-[#272727] bg-[#121212]' : 'border-gray-200 bg-gray-50'
+                  }`}>
+                    <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                      Y
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Chat as Viewer..."
+                      value={userComment}
+                      onChange={(e) => setUserComment(e.target.value)}
+                      className={`flex-1 text-xs rounded-full px-3.5 py-2 border focus:outline-none transition-all ${
+                        isDark 
+                          ? 'bg-[#222] border-[#333] text-white placeholder-gray-500 focus:border-red-500' 
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-red-600 shadow-sm'
+                      }`}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!userComment.trim()}
+                      className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white disabled:opacity-40 flex items-center justify-center transition-all shrink-0"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* TAB 2: YOUTUBE CHANNELS & UP NEXT LIST */}
+              {activeSidebarTab === 'upnext' && (
+                <div className="flex-1 p-3 overflow-y-auto space-y-2.5 hide-scrollbar">
+                  {filteredChannels.map((channel) => {
+                    const cYouTubeId = extractYouTubeId(channel.url);
+                    const isPlayingThis = channel.id === activeStreamId;
+                    const thumbUrl = channel.thumbnail || (cYouTubeId && channel.thumbAvailable !== false ? `https://i.ytimg.com/vi/${cYouTubeId}/mqdefault.jpg` : null);
+
+                    return (
+                      <div
+                        key={channel.id}
+                        onClick={() => switchChannel(channel.id)}
+                        className={`flex gap-3 p-2 rounded-xl cursor-pointer transition-all duration-200 border group ${
+                          isPlayingThis
+                            ? isDark
+                              ? 'bg-red-950/40 border-red-500 shadow-md'
+                              : 'bg-red-50 border-red-300 shadow-sm'
+                            : isDark
+                            ? 'bg-[#202020] border-[#292929] hover:bg-[#2a2a2a] hover:border-[#383838]'
+                            : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200'
+                        }`}
+                      >
+                        {/* 16:9 Thumbnail with LIVE badge */}
+                        <div className="relative w-36 aspect-video rounded-lg overflow-hidden bg-black shrink-0 shadow-sm">
+                          <ChannelThumb channel={channel} src={thumbUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <span className="absolute bottom-1 left-1 bg-red-600 text-white text-[8px] font-black uppercase px-1.5 py-0.2 rounded shadow flex items-center gap-1">
+                            <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                            <span>LIVE</span>
+                          </span>
+                          {isPlayingThis && (
+                            <div className="absolute inset-0 bg-red-600/30 backdrop-blur-[1px] flex items-center justify-center">
+                              <span className="bg-red-600 text-white font-black text-[9px] uppercase px-2 py-0.5 rounded shadow tracking-wider">
+                                Playing
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Metadata */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                          <div>
+                            <h4 className={`text-xs font-bold line-clamp-2 leading-snug group-hover:text-red-500 transition-colors ${
+                              isDark ? 'text-white' : 'text-gray-900'
+                            }`}>
+                              {channel.title}
+                            </h4>
+                            <p className={`text-[11px] font-semibold mt-1 truncate ${
+                              isDark ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
+                              {channel.channelName || 'Broadcaster'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] font-bold mt-1">
+                            <span className="text-red-500">● {channel.viewers || '20K'}</span>
+                            <span className={`uppercase text-[9px] px-1.5 py-0.2 rounded ${
+                              isDark ? 'bg-[#333] text-gray-300' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {channel.category}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* TAB 3: BROADCAST PROGRAM SCHEDULE (EPG) */}
+              {activeSidebarTab === 'schedule' && (
+                <div className="flex-1 p-3 overflow-y-auto space-y-2.5 hide-scrollbar">
+                  <div className={`p-2.5 rounded-xl border text-xs font-semibold mb-2 flex items-center justify-between ${
+                    isDark ? 'bg-[#181818] border-[#2e2e2e] text-gray-300' : 'bg-red-50 border-red-100 text-red-950'
+                  }`}>
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-red-500" />
+                      <span>Today's Broadcast Lineup</span>
+                    </span>
+                    <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-red-600 text-white">Live EPG</span>
+                  </div>
+                  {[
+                    { time: '06:00 - 08:30', title: 'Maharashtra Prabhat', desc: 'State-wide Morning Headlines, Weather & Traffic', live: false },
+                    { time: '08:30 - 10:00', title: 'Pune Kondhwa & Camp Ground Bulletin', desc: 'Dedicated Local Pune Municipal & Community Reports', live: false },
+                    { time: '10:00 - 13:00', title: 'Live News Room 360', desc: 'National Politics, Parliament & Supreme Court Hearings', live: false },
+                    { time: '13:00 - 14:30', title: 'Maharashtra Mahasangram', desc: 'Cabinet Updates, Assembly Debates & Rural Development', live: false },
+                    { time: '14:30 - 17:00', title: 'Market Pulse & AgriTech Live', desc: 'Sensex, Nifty, Bullion Rates & Farming Market Prices', live: false },
+                    { time: '17:00 - 19:00', title: 'Crime Patrol & Police Action Desk', desc: 'Maharashtra Law & Order, Cyber Cell & Police Bulletins', live: true },
+                    { time: '19:00 - 20:30', title: 'Prime Time 8 PM Debate', desc: 'Flagship Hard-Talk Debate with Editor-in-Chief', live: false },
+                    { time: '20:30 - 22:00', title: 'Maharashtra 24', desc: '36 Districts in 36 Minutes Express News', live: false },
+                    { time: '22:00 - 23:30', title: 'Special Investigation: Ground Zero', desc: 'In-Depth Investigative Documentary & Exposé', live: false },
+                    { time: '23:30 - 06:00', title: 'Night Edition & Global Wire', desc: '24/7 Continuous Automated News Feed & World News', live: false },
+                  ].map((prog, idx) => (
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-xl border transition-all ${
+                        prog.live
+                          ? isDark
+                            ? 'bg-red-950/20 border-red-800/80 shadow-md ring-1 ring-red-500/40'
+                            : 'bg-red-50/80 border-red-200 shadow-sm ring-1 ring-red-400/40'
+                          : isDark
+                          ? 'bg-[#181818] border-[#282828] text-gray-300'
+                          : 'bg-white border-gray-200 text-gray-800'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-[11px] font-mono font-bold text-red-500 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {prog.time}
+                        </span>
+                        {prog.live && (
+                          <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full bg-red-600 text-white flex items-center gap-1 animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white" /> On Air Now
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="text-xs font-bold text-inherit">{prog.title}</h4>
+                      <p className={`text-[11px] mt-0.5 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{prog.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── 3. CATEGORIZED BROADCAST SHELVES (YouTube Multi-Channel Hub) ── */}
+        <div className="mt-12 px-4 sm:px-0 space-y-10">
+          {[
+            { catId: 'news', title: '24/7 Marathi & National News Channels', titleMr: '२४ तास मराठी आणि राष्ट्रीय बातम्या', desc: 'Real-time breaking updates, studio debates, and live field reporters.' },
+            { catId: 'kids', title: 'Kids Zone • Rhymes, Cartoons & Learning Stories', titleMr: 'लहान मुलांचे चॅनल • बालगीते, गोष्टी आणि कार्टून', desc: 'Engaging, safe, and educational live streams for toddlers and children.' },
+            { catId: 'business', title: 'Business, Stock Market & Trading Live', titleMr: 'शेअर बाजार आणि बिझनेस थेट प्रक्षेपण', desc: 'Live NSE, BSE Sensex, Nifty analysis, company earnings, and finance tips.' },
+            { catId: 'devotional', title: '24/7 Live Mandir Darshan • Pandharpur & Shirdi', titleMr: '२४ तास थेट देवदर्शन • पंढरपूर, शिर्डी आणि सिद्धिविनायक', desc: 'Experience continuous divine darshan, daily aartis, and prayers from sacred shrines.' },
+            { catId: 'music', title: 'Non-Stop Music & Bollywood Hits', titleMr: 'नॉन-स्टॉप बॉलिवूड गाणी आणि संगीत', desc: 'Top party anthems, romantic melodies, and trending chartbusters.' },
+            { catId: 'sports', title: 'Sports Live & Cricket Match Desk', titleMr: 'क्रीडा थेट विश्लेषण आणि क्रिकेट वार्ता', desc: 'Live score analysis, post-match conferences, and expert insights.' }
+          ].map((section) => {
+            const sectionChannels = channels.filter((c) => c.category === section.catId);
+            if (sectionChannels.length === 0) return null;
+
+            return (
+              <div key={section.catId} className="space-y-4">
+                <div className={`flex flex-col sm:flex-row sm:items-end justify-between gap-1 border-b pb-3 ${
+                  isDark ? 'border-[#272727]' : 'border-gray-200'
+                }`}>
+                  <div>
+                    <h2 className={`text-lg sm:text-2xl font-black tracking-tight flex items-center gap-2 ${
+                      isDark ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      {language === 'mr' ? section.titleMr : section.title}
+                    </h2>
+                    <p className={`text-xs sm:text-sm mt-0.5 font-medium ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
+                      {section.desc}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedCategory(section.catId);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="text-red-500 hover:text-red-400 text-xs font-black uppercase tracking-wider flex items-center gap-1 shrink-0"
+                  >
+                    <span>{language === 'mr' ? 'सर्व पहा' : 'View Section'}</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Channel Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {sectionChannels.map((channel) => {
+                    const cYouTubeId = extractYouTubeId(channel.url);
+                    const isPlayingThis = channel.id === activeStreamId;
+                    const thumbUrl = channel.thumbnail || (cYouTubeId && channel.thumbAvailable !== false ? `https://i.ytimg.com/vi/${cYouTubeId}/mqdefault.jpg` : null);
+
+                    return (
+                      <div
+                        key={channel.id}
+                        onClick={() => switchChannel(channel.id)}
+                        className={`group rounded-2xl overflow-hidden border transition-all duration-200 cursor-pointer flex flex-col shadow-md ${
+                          isPlayingThis
+                            ? 'border-red-500 ring-2 ring-red-500/40'
+                            : isDark
+                            ? 'bg-[#181818] hover:bg-[#222] border-[#292929] hover:border-[#383838]'
+                            : 'bg-white hover:bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        {/* Video Thumbnail */}
+                        <div className="relative aspect-video w-full bg-black overflow-hidden">
+                          <ChannelThumb channel={channel} src={thumbUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <span className="absolute bottom-2 left-2 bg-red-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded shadow flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            <span>LIVE</span>
+                          </span>
+                          <span className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded">
+                            {channel.viewers || '25K'}
+                          </span>
+                          {isPlayingThis && (
+                            <div className="absolute inset-0 bg-red-600/30 backdrop-blur-[1px] flex items-center justify-center">
+                              <span className="bg-red-600 text-white font-black text-xs uppercase px-3 py-1 rounded-md shadow-lg tracking-wider">
+                                Now Playing
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Title and details */}
+                        <div className="p-3.5 flex-1 flex flex-col justify-between">
+                          <div>
+                            <h3 className={`font-bold text-xs sm:text-sm line-clamp-2 leading-snug group-hover:text-red-500 transition-colors ${
+                              isDark ? 'text-white' : 'text-gray-900'
+                            }`}>
+                              {channel.title}
+                            </h3>
+                            <p className={`text-[11px] font-semibold mt-1.5 truncate ${
+                              isDark ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
+                              {channel.channelName || `${siteConfig.brand.shortName} Network`}
+                            </p>
+                          </div>
+                          <div className={`mt-3 pt-2.5 border-t flex items-center justify-between text-[10px] font-bold ${
+                            isDark ? 'border-[#292929] text-gray-500' : 'border-gray-100 text-gray-400'
+                          }`}>
+                            <span className="text-red-500">● Live Streaming</span>
+                            <span className="flex items-center gap-0.5 group-hover:text-red-500 transition-colors">
+                              Watch Now <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── LATEST NEWS VIDEOS (auto-updated from YouTube) ── */}
+      {newsVideos.length > 0 && (
+        <section className="max-w-[1800px] mx-auto px-4 sm:px-6 pb-12">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 className={`text-lg sm:text-xl font-black flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <span className="w-1 h-5 bg-red-600 rounded-full" /> Latest News Videos
+            </h2>
+            <div className="flex gap-2">
+              {[['all', 'All'], ['mr', 'मराठी'], ['hi', 'हिंदी']].map(([k, label]) => (
+                <button key={k} type="button" onClick={() => { setVideoLang(k); setVideoLimit(12); }}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${videoLang === k ? 'bg-red-600 text-white' : isDark ? 'bg-[#272727] text-gray-200' : 'bg-white border border-gray-200 text-gray-700'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {(() => {
+            const list = newsVideos.filter((v) => videoLang === 'all' || v.lang === videoLang);
+            return (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {list.slice(0, videoLimit).map((v) => {
+                    const playing = activeStreamId === `vid-${v.videoId}`;
+                    return (
+                      <button key={v.videoId} type="button" onClick={() => playNewsVideo(v)}
+                        className={`text-left rounded-2xl overflow-hidden group transition-transform active:scale-[0.98] ${isDark ? 'bg-[#1f1f1f]' : 'bg-white border border-gray-200'} ${playing ? 'ring-2 ring-red-600' : ''}`}>
+                        <div className="relative aspect-video bg-black overflow-hidden">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={`https://i.ytimg.com/vi/${v.videoId}/mqdefault.jpg`} alt="" loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+                          <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                            <span className="w-11 h-11 rounded-full bg-red-600 flex items-center justify-center"><Play className="w-5 h-5 text-white fill-white ml-0.5" /></span>
+                          </span>
+                          {playing && <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded">Now Playing</span>}
+                        </div>
+                        <div className="p-3">
+                          <h3 className={`text-sm font-bold leading-snug line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{v.title}</h3>
+                          <p className={`text-[11px] font-semibold mt-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {v.channel} • {new Date(v.published).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {list.length > videoLimit && (
+                  <div className="flex justify-center mt-6">
+                    <button type="button" onClick={() => setVideoLimit((n) => n + 12)} className="px-6 py-2.5 rounded-full bg-red-600 text-white text-sm font-bold active:scale-95 transition-transform">
+                      Load more videos
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </section>
+      )}
+    </div>
+  );
+}

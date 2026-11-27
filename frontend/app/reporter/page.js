@@ -1,0 +1,194 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import ReporterDashboard from '@/components/ReporterDashboard'
+
+import { auth, getFreshToken } from '@/lib/api'
+import { useToast } from '@/hooks/use-toast'
+import { auth as firebaseClientAuth } from '@/lib/firebase'
+import { onIdTokenChanged } from 'firebase/auth'
+import { siteConfig } from '@/lib/siteConfig'
+
+export default function ReporterPage() {
+    const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [user, setUser] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+    const [loginData, setLoginData] = useState({ email: '', password: '' })
+    const { toast } = useToast()
+
+    // Keep the stored Firebase ID token fresh (they expire after 1h). Without this a
+    // reporter who spends over an hour on an article gets a 401 when submitting.
+    useEffect(() => {
+        if (!firebaseClientAuth) return
+        const store = async (force = false) => {
+            const u = firebaseClientAuth.currentUser
+            if (!u) return
+            try {
+                const t = await u.getIdToken(force)
+                if (t) localStorage.setItem('token', t)
+            } catch (err) {
+                console.warn('Reporter token refresh failed:', err)
+            }
+        }
+        const unsubscribe = onIdTokenChanged(firebaseClientAuth, (fbUser) => { if (fbUser) store() })
+        const interval = setInterval(() => store(true), 30 * 60 * 1000)
+        const onFocus = () => store()
+        window.addEventListener('focus', onFocus)
+        return () => {
+            unsubscribe()
+            clearInterval(interval)
+            window.removeEventListener('focus', onFocus)
+        }
+    }, [])
+
+    useEffect(() => {
+        // Migration: purge old invalid 'reporterToken' from previous sessions
+        const legacyToken = localStorage.getItem('reporterToken')
+        if (legacyToken) {
+            localStorage.removeItem('reporterToken')
+        }
+
+        // Always validate token against server (never trust localStorage alone)
+        const validateSession = async () => {
+            const token = await getFreshToken()
+            
+            // Basic JWT validation: a valid Firebase ID token has 3 dot-separated parts
+            const isValidJWT = token && token.split('.').length === 3
+
+            if (!isValidJWT) {
+                // Token is missing or malformed, force re-login
+                localStorage.removeItem('token')
+                localStorage.removeItem('reporterUser')
+                setLoading(false)
+                return
+            }
+
+            try {
+                // Server-side validation: verify token is still valid and user has reporter role
+                const res = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                if (!res.ok) throw new Error('Invalid session')
+                const userData = await res.json()
+                
+                if (userData.role !== 'reporter' && userData.role !== 'super_admin') {
+                    throw new Error('Not a reporter')
+                }
+                
+                // Update localStorage with fresh server data
+                localStorage.setItem('reporterUser', JSON.stringify(userData))
+                setUser(userData)
+                setIsLoggedIn(true)
+            } catch (e) {
+                // Session invalid — force re-login
+                localStorage.removeItem('token')
+                localStorage.removeItem('reporterUser')
+            }
+            setLoading(false)
+        }
+
+        validateSession()
+    }, [])
+
+    const handleLogin = async (e) => {
+        e.preventDefault()
+        setError('')
+        setLoading(true)
+        try {
+            const response = await auth.login({
+                email: loginData.email,
+                password: loginData.password
+            })
+
+            if (response.user.role !== 'reporter' && response.user.role !== 'super_admin') {
+                setError('Access denied. Reporter credentials required.')
+                setLoading(false)
+                return
+            }
+
+            // Standardize on the 'token' key used by the rest of the app
+            localStorage.setItem('token', response.token)
+            localStorage.setItem('reporterUser', JSON.stringify(response.user))
+
+            setUser(response.user)
+            setIsLoggedIn(true)
+        } catch (err) {
+            setError(err.message || 'Login failed. Please check your credentials.')
+        }
+        setLoading(false)
+    }
+
+    const handleLogout = () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('reporterUser')
+        setUser(null)
+        setIsLoggedIn(false)
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+            </div>
+        )
+    }
+
+    if (!isLoggedIn) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0b1128] via-[#1e296b] to-[#8b1e24] p-4">
+                <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+                    <div className="text-center mb-8">
+                        <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="w-16 h-16 mx-auto mb-3 object-contain rounded-full shadow-sm" />
+                        <h1 className="text-2xl font-bold text-brand-navy">Reporter Panel</h1>
+                        <p className="text-gray-500 mt-1">{siteConfig.brand.name} Reporter Login</p>
+                    </div>
+
+                    {error && (
+                        <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input
+                                type="email"
+                                value={loginData.email}
+                                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder={`reporter@${siteConfig.domains.allowedHosts[0]}`}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input
+                                type="password"
+                                value={loginData.password}
+                                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        >
+                            {loading ? 'Logging in...' : 'Login to Reporter Panel'}
+                        </button>
+                    </form>
+
+                    <div className="mt-6 text-center text-sm text-gray-500">
+                        <p>Only authorized reporters can access this panel.</p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    return <ReporterDashboard user={user} toast={toast} onLogout={handleLogout} />
+}

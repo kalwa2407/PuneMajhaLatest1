@@ -1,0 +1,96 @@
+import { getDb } from '@/lib/firebaseAdmin';
+import { requireSuperAdmin } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { purgeCache } from '@/lib/cache';
+
+export const dynamic = 'force-dynamic';
+
+
+// GET: Fetch full live TV config (admin - includes inactive streams)
+export async function GET(request) {
+    const db = getDb();
+    try {
+        const authResult = await requireSuperAdmin(request);
+        if (authResult.error) {
+            return NextResponse.json({ error: authResult.error }, { status: authResult.status });
+        }
+        const doc = await db.collection('settings').doc('live_tv_config').get();
+
+        if (!doc.exists) {
+            return NextResponse.json({
+                enabled: false,
+                streams: [],
+                primaryStreamId: null
+            }, {
+                headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' }
+            });
+        }
+
+        return NextResponse.json(doc.data(), {
+            headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' }
+        });
+    } catch (error) {
+        console.error('Error fetching live TV config:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
+
+// PUT: Update live TV config
+export async function PUT(request) {
+    const db = getDb();
+    try {
+        const authResult = await requireSuperAdmin(request);
+        if (authResult.error) {
+            return NextResponse.json({ error: authResult.error }, { status: authResult.status });
+        }
+        const body = await request.json();
+
+        // Validate stream limits
+        if (body.streams && body.streams.length > 100) {
+            return NextResponse.json({ error: 'Maximum 100 streams allowed' }, { status: 400 });
+        }
+
+        // Validate each stream URL is a valid YouTube URL or 11-character video ID
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+        const idRegex = /^[a-zA-Z0-9_-]{11}$/;
+        for (const stream of (body.streams || [])) {
+            if (stream.title && stream.title.length > 150) {
+                return NextResponse.json({ error: 'Stream title must be under 150 characters' }, { status: 400 });
+            }
+            if (stream.url && !youtubeRegex.test(stream.url.trim()) && !idRegex.test(stream.url.trim())) {
+                return NextResponse.json({ error: `Invalid YouTube URL or ID: "${stream.url}". Only YouTube URLs or video IDs are supported.` }, { status: 400 });
+            }
+        }
+
+        // Validate the config structure
+        const config = {
+            enabled: body.enabled !== false,
+            streams: (body.streams || []).map(stream => ({
+                id: stream.id || crypto.randomUUID(),
+                title: stream.title || 'Untitled Stream',
+                channelName: stream.channelName || stream.title || 'Live Channel',
+                category: stream.category || 'news',
+                url: stream.url || '',
+                isLive: stream.isLive !== false,
+                isActive: stream.isActive !== false,
+                viewers: stream.viewers || '10K',
+                description: stream.description || '',
+                order: stream.order || 0,
+                addedAt: stream.addedAt || new Date().toISOString()
+            })),
+            primaryStreamId: body.primaryStreamId || null,
+            updatedAt: new Date().toISOString()
+        };
+
+        await db.collection('settings').doc('live_tv_config').set(config, { merge: false });
+
+        // Invalidate public live TV cache
+        purgeCache('live_tv');
+        purgeCache('api_live_tv_config_v2');
+
+        return NextResponse.json({ success: true, config });
+    } catch (error) {
+        console.error('Error updating live TV config:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}

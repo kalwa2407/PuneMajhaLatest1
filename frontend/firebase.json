@@ -1,0 +1,40 @@
+{
+  "emulators": {
+    "auth": {
+      "host": "127.0.0.1",
+      "port": 9099
+    },
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8080
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "apphosting": [
+    {
+      "backendId": "REPLACE_WITH_NEW_BACKEND_ID",
+      "rootDir": ".",
+      "ignore": [
+        "node_modules",
+        ".git",
+        ".next",
+        "firebase-debug.log",
+        ".env",
+        ".env.*",
+        "sync_users.js",
+        "tests",
+        "test-results",
+        "playwright-report",
+        "coverage",
+        "qa*.env.sh",
+        "*.log"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,606 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import Image from 'next/image'
+import { Search, MapPin, Phone, Globe, Star, Building2, Filter, Store, ChevronRight, Zap, LayoutGrid, Utensils, HeartPulse, GraduationCap, Home, Car, Laptop, Scissors, Plane, Scale, Hammer, MoreHorizontal, ShieldCheck, MessageCircle, Navigation, ExternalLink, CheckCircle2 } from 'lucide-react'
+import { businesses } from '@/lib/api'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { siteConfig } from '@/lib/siteConfig'
+
+const BUSINESS_CATEGORIES = [
+  'All Categories',
+  'Restaurant',
+  'Cafe',
+  'Electronics',
+  'Fashion',
+  'Healthcare',
+  'Education',
+  'Fitness',
+  'Beauty & Spa',
+  'Real Estate',
+  'Automotive',
+  'Services'
+]
+
+const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
+  const { t, language } = useLanguage()
+  const [businessList, setBusinessList] = useState([])
+  const [filteredBusinesses, setFilteredBusinesses] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All Categories')
+  const [selectedLocality, setSelectedLocality] = useState('All Localities')
+
+  // Open the shared Header "Promote Business" modal directly (businessOnly hides Classified Ad tab)
+  const openBusinessPromoteModal = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('openPostAdModal', { detail: { tab: 'business', businessOnly: true } }))
+    }
+  }
+
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      try {
+        const response = await businesses.getAll({})
+        if (Array.isArray(response) && response.length > 0) {
+          setBusinessList(response)
+          setFilteredBusinesses(response)
+        } else if (response?.businesses && Array.isArray(response.businesses) && response.businesses.length > 0) {
+          setBusinessList(response.businesses)
+          setFilteredBusinesses(response.businesses)
+        } else {
+          setBusinessList([])
+          setFilteredBusinesses([])
+        }
+      } catch (error) {
+        console.error('Failed to load businesses from API:', error)
+        setBusinessList([])
+        setFilteredBusinesses([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchBusinesses()
+  }, [])
+
+  useEffect(() => {
+    if (businessList.length > 0) {
+      filterBusinesses()
+    }
+  }, [searchTerm, selectedCategory, selectedLocality, businessList])
+
+  const filterBusinesses = () => {
+    let filtered = businessList
+
+    if (selectedCategory !== 'All Categories') {
+      filtered = filtered.filter(b => 
+        b.category === selectedCategory || 
+        (selectedCategory === 'Restaurants & Cafes' && (b.category === 'Restaurant' || b.category === 'Cafe'))
+      )
+    }
+
+    if (selectedLocality === 'Beyond Pune') {
+      filtered = filtered.filter(b => !`${b.area || ''} ${b.address || ''} ${b.city || ''}`.toLowerCase().includes('pune'))
+    } else if (selectedLocality !== 'All Localities') {
+      const targetLocality = selectedLocality.toLowerCase();
+      filtered = filtered.filter(b =>
+        (b.area || '').toLowerCase().includes(targetLocality) ||
+        (b.locality || '').toLowerCase().includes(targetLocality) ||
+        (b.address || '').toLowerCase().includes(targetLocality)
+      )
+    }
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(b =>
+        (b.name || '').toLowerCase().includes(term) ||
+        (b.description || '').toLowerCase().includes(term) ||
+        (b.area || '').toLowerCase().includes(term) ||
+        (b.address || '').toLowerCase().includes(term) ||
+        (b.category || '').toLowerCase().includes(term)
+      )
+    }
+
+    setFilteredBusinesses(filtered)
+  }
+
+  const getCategoryLabel = (label) => {
+    switch (label) {
+      case 'All Categories': return t('allCategories') || 'All Categories'
+      case 'Restaurants & Cafes':
+      case 'Restaurant':
+      case 'Cafe': return t('restaurantsAndCafes') || 'Restaurants & Cafes'
+      case 'Healthcare': return t('health') || 'Healthcare'
+      case 'Education': return t('education') || 'Education'
+      case 'Real Estate': return t('property') || 'Real Estate'
+      case 'Automotive': return t('vehicles') || 'Automotive'
+      case 'Electronics': return t('electronics') || 'Electronics'
+      case 'Beauty & Wellness':
+      case 'Beauty & Spa': return t('beautyAndWellness') || 'Beauty & Wellness'
+      case 'Travel & Tourism': return t('travelAndTourism') || 'Travel & Tourism'
+      case 'Professional Services': return t('professionalServices') || 'Professional Services'
+      case 'Home Services': return t('homeServices') || 'Home Services'
+      case 'Services': return t('services') || 'Services'
+      case 'Fitness': return t('fitness') || 'Fitness'
+      case 'Fashion': return t('fashion') || 'Fashion'
+      case 'More': return t('more') || 'More'
+      default: return label
+    }
+  }
+
+  if (loading) {
+    return <div className="text-center py-12">{t('loading') || 'Loading businesses...'}</div>
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+
+      {/* ─── HERO BANNER ─── */}
+      <div className="relative w-full overflow-hidden h-[160px] md:h-[200px]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="https://images.unsplash.com/photo-1533750516457-a7f992034fec?w=1600&auto=format&fit=crop&q=80" alt="Business Directory" className="absolute inset-0 w-full h-full object-cover" loading="eager" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20" />
+        <div className="relative z-10 w-full px-4 md:px-12 flex flex-col justify-center h-full">
+          <p className="text-gray-400 text-[10px] md:text-xs font-black uppercase tracking-widest mb-1 md:mb-2">{t('businessDirectory') || 'BUSINESS DIRECTORY'}</p>
+          <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-black leading-tight mb-2">
+            {t('discoverLocalBusinesses') || 'Discover Local Businesses'}
+          </h1>
+          <p className="hidden sm:block text-gray-300 text-xs md:text-sm mb-3 md:mb-5 max-w-lg">{t('businessDirectoryDesc') || 'Find trusted businesses, services and professionals across Pune and beyond.'}</p>
+          <div className="hidden md:flex flex-wrap gap-6">
+            {[
+              { icon: '🏢', value: '5,000+', label: t('listedBusinesses') || 'Listed Businesses' },
+              { icon: '📂', value: '100+', label: t('categories') || 'Categories' },
+              { icon: '✅', value: t('verified') || 'Verified', label: t('trustedAuthentic') || 'Listings Trusted & Authentic' },
+              { icon: '📈', value: t('localGrowth') || 'Local Growth', label: t('strongerCommunities') || 'Stronger Communities' },
+            ].map(s => (
+              <div key={s.label} className="flex items-center gap-2">
+                <span className="text-xl">{s.icon}</span>
+                <div>
+                  <p className="text-white text-sm font-black">{s.value}</p>
+                  <p className="text-gray-400 text-[10px]">{s.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── SEARCH BAR ─── */}
+      <div className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex gap-2 sm:gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder={t('searchBusinessPlaceholder') || "Search for business, service or keyword..."}
+                className="h-11 pl-10 rounded-lg border-gray-200 text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="hidden sm:flex items-center gap-2 border border-gray-200 rounded-lg px-3 text-sm text-gray-600">
+              <MapPin className="w-4 h-4 text-gray-400" />
+              <span>Pune, Maharashtra</span>
+            </div>
+            <Button aria-label="Search" className="h-11 px-4 sm:px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shrink-0">
+              <Search className="w-4 h-4 sm:hidden" />
+              <span className="hidden sm:inline">{t('search') || 'Search'} →</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── PUNE LOCALITY FILTER CHIPS (Camp & Kondhwa Focus) ─── */}
+      <div className="bg-slate-50 border-b border-gray-200 py-3">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 flex-nowrap sm:flex-wrap overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+            <span className="shrink-0 text-xs font-black text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-red-600" />
+              Localities:
+            </span>
+            {[
+              { id: 'All Localities', label: 'All', count: businessList.length },
+              { id: 'Kondhwa', label: '📍 Kondhwa', count: businessList.filter(b => `${b.area||''} ${b.address||''}`.toLowerCase().includes('kondhwa')).length },
+              { id: 'Camp', label: '📍 Camp', count: businessList.filter(b => `${b.area||''} ${b.address||''}`.toLowerCase().includes('camp')).length },
+              { id: 'Pune', label: '🏙️ Pune City', count: businessList.filter(b => `${b.area||''} ${b.address||''} ${b.city||''}`.toLowerCase().includes('pune')).length },
+              { id: 'Beyond Pune', label: '🗺️ Maharashtra', count: businessList.filter(b => !`${b.area||''} ${b.address||''} ${b.city||''}`.toLowerCase().includes('pune')).length },
+            ].map((loc) => {
+              const isLocActive = selectedLocality === loc.id
+              return (
+                <button
+                  key={loc.id}
+                  onClick={() => setSelectedLocality(loc.id)}
+                  className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${
+                    isLocActive
+                      ? 'bg-red-600 text-white border-red-600 shadow-md ring-2 ring-red-200'
+                      : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <span>{loc.label}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                    isLocActive ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {loc.count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Admin Verified Status Badge */}
+          <div className="hidden lg:flex shrink-0 items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-black border border-emerald-200">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Listings verified by {siteConfig.brand.shortName}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── CATEGORY TABS ─── */}
+      <div className="border-b border-gray-100 bg-white shadow-sm py-3 sm:py-5">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1 sm:pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {[
+              { icon: <LayoutGrid className="w-5 h-5 text-indigo-500" />, label: 'All Categories', color: 'bg-indigo-50' },
+              { icon: <Utensils className="w-5 h-5 text-orange-500" />, label: 'Restaurants & Cafes', color: 'bg-orange-50' },
+              { icon: <HeartPulse className="w-5 h-5 text-rose-500" />, label: 'Healthcare', color: 'bg-rose-50' },
+              { icon: <GraduationCap className="w-5 h-5 text-violet-500" />, label: 'Education', color: 'bg-violet-50' },
+              { icon: <Home className="w-5 h-5 text-blue-500" />, label: 'Real Estate', color: 'bg-blue-50' },
+              { icon: <Car className="w-5 h-5 text-emerald-500" />, label: 'Automotive', color: 'bg-emerald-50' },
+              { icon: <Laptop className="w-5 h-5 text-cyan-500" />, label: 'Electronics', color: 'bg-cyan-50' },
+              { icon: <Scissors className="w-5 h-5 text-pink-500" />, label: 'Beauty & Wellness', color: 'bg-pink-50' },
+              { icon: <Plane className="w-5 h-5 text-sky-500" />, label: 'Travel & Tourism', color: 'bg-sky-50' },
+              { icon: <Scale className="w-5 h-5 text-amber-500" />, label: 'Professional Services', color: 'bg-amber-50' },
+              { icon: <Hammer className="w-5 h-5 text-teal-500" />, label: 'Home Services', color: 'bg-teal-50' },
+              { icon: <MoreHorizontal className="w-5 h-5 text-gray-500" />, label: 'More', color: 'bg-gray-100' },
+            ].map((cat, i) => {
+              const isActive = (i === 0 && selectedCategory === 'All Categories') || (cat.label === selectedCategory)
+              return (
+                <button
+                  key={cat.label}
+                  onClick={() => setSelectedCategory(i === 0 ? 'All Categories' : cat.label)}
+                  className={`shrink-0 flex flex-col items-center justify-center gap-1.5 sm:gap-2 min-w-[82px] h-[76px] sm:min-w-[105px] sm:h-[90px] rounded-2xl sm:rounded-[18px] border transition-all duration-300 ${
+                    isActive ? 'border-red-500 bg-red-50/50 shadow-sm text-red-600' : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md hover:-translate-y-1 text-gray-700'
+                  }`}
+                >
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${isActive ? 'bg-white shadow-sm' : cat.color}`}>
+                    {isActive ? <LayoutGrid className="w-5 h-5 text-red-500" /> : cat.icon}
+                  </div>
+                  <span className={`text-[10px] font-bold tracking-wide ${isActive ? 'text-red-600' : 'text-gray-600'} text-center px-1 leading-tight`}>{getCategoryLabel(cat.label)}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── MAIN LAYOUT ─── */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-5 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_280px] gap-6 lg:gap-8">
+
+          {/* LEFT: Filters (desktop; phones use the locality chips + category tiles above) */}
+          <aside className="hidden lg:block lg:sticky lg:top-[68px] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide space-y-5 bg-slate-50/70 border border-gray-200/80 rounded-2xl p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-black text-sm text-gray-900">{t('filters') || 'Filters'}</h3>
+              <button 
+                onClick={() => { setSelectedCategory('All Categories'); setSelectedLocality('All Localities'); setSearchTerm(''); }}
+                className="text-red-600 hover:text-red-700 text-xs font-bold"
+              >
+                {t('clearAll') || 'Clear All'}
+              </button>
+            </div>
+
+            {/* Location */}
+            <div>
+              <p className="text-xs font-black text-gray-700 mb-2 flex items-center gap-1"><MapPin className="w-3 h-3 text-red-500" /> {t('location') || 'Pune Locality'}</p>
+              <select 
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white"
+                value={selectedLocality}
+                onChange={(e) => setSelectedLocality(e.target.value)}
+              >
+                <option value="All Localities">All Localities</option>
+                <option value="Kondhwa">📍 Kondhwa</option>
+                <option value="Camp">📍 Camp</option>
+                <option value="Pune">🏙️ Pune City</option>
+                <option value="Beyond Pune">🗺️ Rest of Maharashtra</option>
+              </select>
+            </div>
+
+            {/* Category */}
+            <div>
+              <p className="text-xs font-black text-gray-700 mb-2">{t('category') || 'Category'}</p>
+              <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>
+                {BUSINESS_CATEGORIES.map(c => <option key={c} value={c}>{getCategoryLabel(c)}</option>)}
+              </select>
+            </div>
+
+            {/* Rating */}
+            <div>
+              <p className="text-xs font-black text-gray-700 mb-2 flex items-center gap-1"><Star className="w-3 h-3" /> {t('rating') || 'Rating'}</p>
+              {[
+                { val: '4.5 & above', label: `4.5 ${t('andAbove') || '& above'}` },
+                { val: '4.0 & above', label: `4.0 ${t('andAbove') || '& above'}` },
+                { val: '3.0 & above', label: `3.0 ${t('andAbove') || '& above'}` },
+                { val: 'Any rating', label: t('anyRating') || 'Any rating' },
+              ].map(r => (
+                <label key={r.val} className="flex items-center gap-2 text-xs text-gray-600 py-1 cursor-pointer">
+                  <input type="radio" name="rating" className="accent-red-600" /> {r.label}
+                </label>
+              ))}
+            </div>
+
+            {/* Business Type */}
+            <div>
+              <p className="text-xs font-black text-gray-700 mb-2">{t('businessType') || 'Business Type'}</p>
+              {[
+                { id: 'verified', label: t('verifiedBusiness') || 'Verified Business' },
+                { id: 'open', label: t('openNow') || 'Open Now' },
+                { id: 'deals', label: t('offersAndDeals') || 'Offers & Deals' },
+                { id: 'delivery', label: t('homeDelivery') || 'Home Delivery' },
+                { id: 'booking', label: t('onlineBooking') || 'Online Booking' },
+              ].map(bt => (
+                <label key={bt.id} className="flex items-center gap-2 text-xs text-gray-600 py-1 cursor-pointer">
+                  <input type="checkbox" className="accent-red-600" /> {bt.label}
+                </label>
+              ))}
+            </div>
+
+            <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-sm">{t('applyFilters') || 'Apply Filters'}</Button>
+          </aside>
+
+          {/* CENTER: Results Grid */}
+          <div className="lg:border-l lg:border-gray-200 lg:pl-7">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-gray-500 tabular-nums">{t('showing') || 'Showing'} <span className="font-bold text-gray-900">{filteredBusinesses.length}</span> {t('businesses') || 'businesses'}</p>
+              <div className="flex items-center gap-2">
+                <select className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700">
+                  <option>{t('mostRelevant') || 'Most Relevant'}</option>
+                  <option>{t('highestRated') || 'Highest Rated'}</option>
+                  <option>{t('newestFirst') || 'Newest First'}</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+              {filteredBusinesses.map((business) => {
+                const rawPhone = business.phone || business.whatsapp || '';
+                const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+                const mapsQuery = encodeURIComponent(`${business.name} ${business.address || business.area || 'Pune'}`);
+                const directionsUrl = business.googleMapsLink || `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+
+                return (
+                  <div
+                    key={business.id}
+                    className="bg-white border border-gray-200 hover:border-red-400 rounded-2xl overflow-hidden cursor-pointer group hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                    onClick={() => { setSelectedBusiness(business); setCurrentView('business-detail') }}
+                  >
+                    <div>
+                      {/* Card Image Banner */}
+                      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+                        <img
+                          src={business.cover_image || business.coverImage || business.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80'}
+                          alt={business.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80' }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+                        
+                        {/* Top Left: Admin Verified Shield */}
+                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                          <span className="bg-emerald-600/95 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-md flex items-center gap-1 tracking-wider uppercase">
+                            <ShieldCheck className="w-3 h-3 text-white" />
+                            <span>Admin Verified</span>
+                          </span>
+                        </div>
+
+                        {/* Top Right: Locality Tag */}
+                        <div className="absolute top-2.5 right-2.5">
+                          <span className="bg-black/80 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20">
+                            {business.area || business.locality || 'Pune'}
+                          </span>
+                        </div>
+
+                      </div>
+
+                      {/* Business Core Info */}
+                      <div className="p-4 space-y-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-black text-base text-gray-900 leading-snug group-hover:text-red-600 transition-colors line-clamp-1">
+                              {business.name}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[11px] font-bold text-red-600">
+                                {getCategoryLabel(business.category)}
+                              </span>
+                              <span className="text-[10px] text-gray-400">•</span>
+                              <span className="text-[10px] text-gray-500 font-medium">
+                                Verified Listing
+                              </span>
+                            </div>
+                          </div>
+                          {business.logo && (
+                            <div className="w-10 h-10 rounded-xl border border-gray-100 overflow-hidden shrink-0 bg-white p-0.5 shadow-sm">
+                              <img src={business.logo} alt="" className="w-full h-full object-cover rounded-lg" onError={e => e.currentTarget.style.display='none'} />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Rating: only when the listing has a real one */}
+                        {Number(business.rating) > 0 && (
+                        <div className="flex items-center gap-1.5 bg-amber-50/70 border border-amber-200/60 px-2.5 py-1 rounded-lg w-fit">
+                          <div className="flex items-center">
+                            {[1,2,3,4,5].map(s => (
+                              <Star key={s} className={`w-3.5 h-3.5 ${s <= Math.round(business.rating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}`} />
+                            ))}
+                          </div>
+                          <span className="text-xs font-black text-amber-900 tabular-nums">{business.rating}</span>
+                          {business.reviewCount > 0 && <span className="text-[11px] text-amber-700 font-medium tabular-nums">({Number(business.reviewCount).toLocaleString()} reviews)</span>}
+                        </div>
+                        )}
+
+                        {/* Address */}
+                        <p className="text-xs text-gray-600 flex items-start gap-1.5 line-clamp-1">
+                          <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
+                          <span>{business.address || business.area || 'Pune, Maharashtra'}</span>
+                        </p>
+
+                        {/* Description */}
+                        {business.description && (
+                          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                            {business.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Quick Interactive Actions */}
+                    <div className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-2.5">
+                      <div className="grid grid-cols-3 gap-2">
+                        {/* Call */}
+                        {rawPhone ? (
+                          <a
+                            href={`tel:${rawPhone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="min-h-[40px] py-2 px-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                            title="Call Business"
+                          >
+                            <Phone className="w-3 h-3 text-green-600" />
+                            <span>Call</span>
+                          </a>
+                        ) : (
+                          <div className="min-h-[40px] py-2 px-2 rounded-xl bg-gray-50 text-gray-500 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95">
+                            <Building2 className="w-3 h-3" />
+                            <span>Profile</span>
+                          </div>
+                        )}
+
+                        {/* WhatsApp */}
+                        {rawPhone ? (
+                          <a
+                            href={`https://wa.me/${cleanPhone}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="min-h-[40px] py-2 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                            title="WhatsApp Business"
+                          >
+                            <MessageCircle className="w-3 h-3 text-emerald-600" />
+                            <span>Chat</span>
+                          </a>
+                        ) : (
+                          <div className="min-h-[40px] py-2 px-2 rounded-xl bg-gray-50 text-gray-500 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95">
+                            <ChevronRight className="w-3 h-3" />
+                            <span>Details</span>
+                          </div>
+                        )}
+
+                        {/* Directions on Google Maps */}
+                        <a
+                          href={directionsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="min-h-[40px] py-2 px-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                          title="Open Google Maps Directions"
+                        >
+                          <Navigation className="w-3 h-3 text-blue-600" />
+                          <span>Map</span>
+                        </a>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1 border-t border-gray-50">
+                        <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>{business.area || 'Verified listing'}</span>
+                        </span>
+                        <span className="hover:text-red-600 font-bold flex items-center gap-0.5">
+                          <span>View Profile</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {filteredBusinesses.length === 0 && (
+              <div className="text-center py-12">
+                <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="text-gray-400 font-bold">{t('noBusinessesFound') || 'No businesses found matching your criteria'}</p>
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT: Sidebar */}
+          <div className="space-y-4">
+            {/* List Your Business CTA */}
+            <div className="border border-gray-200 rounded-xl p-4">
+              <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center mb-3">
+                <Store className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="font-black text-sm text-gray-900 mb-1">{t('listYourBusiness') || 'List Your Business'}</h3>
+              <p className="text-[11px] text-gray-500 mb-3">{t('listYourBusinessDesc') || 'Reach thousands of potential customers across India.'}</p>
+              <ul className="space-y-1 mb-4">
+                {[
+                  t('getDiscoveredLocally') || 'Get discovered locally',
+                  t('boostBrandVisibility') || 'Boost your brand visibility',
+                  t('easyAndQuickListing') || 'Easy and quick listing',
+                  t('trustedByCommunity') || `Trusted by the ${siteConfig.brand.shortName} community`
+                ].map(p => (
+                  <li key={p} className="flex items-center gap-2 text-[11px] text-gray-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />{p}
+                  </li>
+                ))}
+              </ul>
+              <Button
+                type="button"
+                onClick={openBusinessPromoteModal}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-lg"
+              >
+                {t('addYourBusiness') || '+ Add Your Business'}
+              </Button>
+            </div>
+
+            {/* Good Businesses Banner */}
+            <div className="bg-gray-900 rounded-xl p-4 relative overflow-hidden">
+              <div className="relative z-10">
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-1">{t('goodBusinesses') || 'Good Businesses'}</p>
+                <h3 className="text-white font-black text-base leading-tight mb-2">{t('buildGreatCities') || 'Build Great Cities'}</h3>
+                <p className="text-gray-400 text-[11px] mb-3">{t('goodBusinessesDesc') || 'Let your business be part of a stronger, informed India.'}</p>
+                <button
+                  type="button"
+                  onClick={openBusinessPromoteModal}
+                  className="bg-white text-gray-900 text-xs font-black px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  {t('listNow') || 'List Now →'}
+                </button>
+              </div>
+            </div>
+
+            {/* Businesses Near You */}
+            <div className="border border-gray-200 rounded-xl p-4">
+              <h3 className="font-black text-sm text-gray-900 mb-3">{t('businessesNearYou') || 'Businesses Near You'}</h3>
+              <div className="bg-gray-100 rounded-lg h-40 flex items-center justify-center mb-3">
+                <div className="text-center">
+                  <MapPin className="w-6 h-6 text-red-500 mx-auto mb-1" />
+                  <p className="text-xs text-gray-500">{t('mapView') || 'Map View'}</p>
+                  <div className="flex gap-1 mt-2 justify-center">
+                    {['🔴','🔴','🔴'].map((pin, i) => <span key={i}>{pin}</span>)}
+                  </div>
+                </div>
+              </div>
+              <button className="w-full border border-gray-200 text-gray-700 text-xs font-bold py-2 rounded-lg hover:bg-gray-50 transition-colors">{t('viewOnMap') || 'View on Map →'}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default BusinessesPage

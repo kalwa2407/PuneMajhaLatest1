@@ -1,0 +1,1131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-x: clip; /* clip (not hidden) keeps position:sticky working */
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #0f0f10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.75rem;
+
+    /* Magazine Font Tokens */
+    --font-heading: Arial, Helvetica, sans-serif;
+    --font-sans: Calibri, 'Segoe UI', Arial, sans-serif;
+
+    /* News Channel Color Tokens - Pune Majha Navy & Crimson */
+    --brand-navy: 231 56% 27%;
+    --brand-navy-dark: 231 60% 19%;
+    --brand-red: 358 84% 52%;
+    --brand-red-dark: 357 74% 42%;
+    --brand-maroon: 357 65% 33%;
+    --news-red: 358 84% 52%;
+    --news-red-dark: 357 74% 42%;
+    --news-blue: 231 56% 27%;
+    --news-gold: 43 100% 50%;
+    --news-headline: 229 48% 14%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* =============================================
+   UI POLISH LAYER (design-engineering details)
+   Interaction feel only: no colour/theme changes.
+   ============================================= */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings: balanced wrapping + slightly tighter tracking on large text */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+/* Apple-style size-specific tracking: tighter as type grows, body near 0 */
+body {
+  font-optical-sizing: auto;
+  font-feature-settings: "kern" 1;
+}
+h1 { letter-spacing: -0.022em; line-height: 1.15; }
+h2 { letter-spacing: -0.017em; line-height: 1.2; }
+h3 { letter-spacing: -0.011em; }
+.text-xs, .text-\[10px\], .text-\[11px\] { letter-spacing: 0.005em; }
+
+/* Refined, unobtrusive scrollbars (desktop) */
+@media (hover: hover) and (pointer: fine) {
+  * { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.18) transparent; }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.16);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover { background-color: rgba(0,0,0,0.3); }
+}
+
+/* Used by horizontal strips in Header/HomePage (was referenced but never defined) */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none !important; }
+.scrollbar-hide::-webkit-scrollbar { display: none !important; }
+
+/* Smooth in-page scrolling (disabled under reduced motion below) */
+html { scroll-behavior: smooth; }
+p {
+  text-wrap: pretty;
+}
+
+/* Press feedback: buttons confirm the tap. Uses the independent `scale`
+   property so it composes with any existing Tailwind transform/translate. */
+:where(button:not(:disabled), [role="button"]) {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, scale;
+  transition-timing-function: var(--ease-out);
+  transition-duration: 160ms;
+}
+/* Tailwind `transition-colors` buttons: still give the press a quick ease */
+button.transition-colors:not(:disabled) {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, scale;
+}
+button:not(:disabled):not([data-no-press]):active,
+[role="button"]:not([aria-disabled="true"]):not([data-no-press]):active {
+  scale: 0.97;
+}
+
+/* Prevent long-press text selection on buttons (feels like an app, not a page) */
+button {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* Numbers that update (stats, counters, prices) don't jitter */
+.tabular-nums, [data-numeric], table td, table th {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keyboard focus is always visible, mouse focus stays clean */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* iOS: inputs under 16px zoom the page on focus */
+@media (max-width: 767px) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Mobile browsers: 100vh hides content behind the URL bar */
+@supports (height: 100dvh) {
+  .h-screen { height: 100dvh; }
+  .min-h-screen { min-height: 100dvh; }
+  .max-h-screen { max-height: 100dvh; }
+}
+
+/* Images: no ghost-drag of UI imagery, smooth decode */
+img {
+  -webkit-user-drag: none;
+}
+
+/* Respect reduced motion: keep fades, remove movement/zoom */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  button:active, [role="button"]:active { scale: 1 !important; }
+  .animate-in, .animate-out, [data-state] {
+    animation-duration: 1ms !important;
+  }
+  .news-image-container:hover img { transform: none; }
+}
+
+@layer utilities {
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-scroll {
+    animation: scroll 20s linear infinite;
+  }
+
+  .animate-marquee {
+    display: inline-block;
+    animation: marquee 30s linear infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
+  }
+}
+
+/* =============================================
+   IMAGE AUTO ADJUSTMENT - News Cards, Ads, Banners
+   ============================================= */
+
+/* Global image styling for cards and ads */
+/* Global image styling for specific generic banners only */
+.ad-banner img,
+.sidebar-ad img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Image wrapper with fixed aspect ratio */
+.image-wrapper {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 12px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .image-wrapper {
+    height: 160px;
+  }
+}
+
+/* Premium Ad Banner */
+.premium-ad-banner {
+  width: 100%;
+  overflow: hidden;
+}
+
+.premium-ad-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Sidebar Advertisement */
+.sidebar-ad-container {
+  width: 100%;
+  min-height: 400px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.sidebar-ad-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* News Card Image Container */
+.news-image-container {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 8px;
+  position: relative;
+  background-color: #f3f4f6;
+}
+
+.news-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.3s ease;
+}
+
+.news-image-container:hover img {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .news-image-container {
+    height: 140px;
+  }
+}
+
+/* E-Newspaper Thumbnail */
+.enewspaper-thumbnail {
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.enewspaper-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Utility class for any image container */
+.img-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.img-contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Background image utilities */
+.bg-cover-center {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Aspect ratio containers */
+.aspect-video {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.aspect-portrait {
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+}
+
+/* =============================================
+   MAGAZINE TYPOGRAPHY & LAYOUTS
+   ============================================= */
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.magazine-grid {
+  display: grid;
+  gap: 2rem;
+}
+
+/* Hero Title - Magazine Style */
+.hero-title {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+/* Drop Cap Effect */
+.drop-cap::first-letter {
+  float: left;
+  font-family: var(--font-heading);
+  font-size: 4.5rem;
+  line-height: 0.85;
+  margin: 0.2rem 0.5rem 0 0;
+  color: hsl(var(--news-red));
+  font-weight: 900;
+}
+
+/* Asymmetric Bento Grid */
+.bento-magazine {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: min-content;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .bento-magazine {
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 300px;
+    gap: 2rem;
+  }
+}
+
+.bento-item-large {
+  grid-column: span 1;
+  grid-row: span 1;
+  height: 400px;
+}
+
+.bento-item-wide {
+  grid-column: span 1;
+  height: 300px;
+}
+
+@media (min-width: 1024px) {
+  .bento-item-large {
+    grid-column: span 2;
+    grid-row: span 2;
+    height: auto;
+  }
+
+  .bento-item-wide {
+    grid-column: span 2;
+    height: auto;
+  }
+}
+
+/* Premium Card Styles */
+.premium-card {
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+  background: white;
+}
+
+.premium-card:hover {
+  transform: translateY(-8px);
+}
+
+.premium-card-shadow {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+}
+
+.premium-card:hover .premium-card-shadow {
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+}
+
+/* High-End Border Accents */
+.border-accent-left {
+  position: relative;
+}
+
+.border-accent-left::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: hsl(var(--news-red));
+  border-radius: 2px;
+}
+
+/* Magazine Section Header */
+.mag-section-header {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .mag-section-header {
+    font-size: 2.25rem;
+    margin-bottom: 2rem;
+    gap: 1rem;
+  }
+}
+
+.mag-section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: hsl(var(--border));
+}
+
+/* Premium Ad Card */
+.sponsored-card {
+  background: hsl(var(--secondary) / 0.5);
+  border: 1px dashed hsl(var(--muted-foreground) / 0.3);
+  padding: 1rem;
+  border-radius: var(--radius);
+}
+
+/* Image Grain Effect (Subtle Texture) */
+.grain-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/asfalt-dark.png");
+  opacity: 0.05;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* NYT Inspired List for Mobile */
+.nyt-list-item {
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 1.25rem 0;
+}
+
+.nyt-list-item:last-child {
+  border-bottom: none;
+}
+
+/* Trending Indicator */
+.trending-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #f59e0b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trending-indicator svg {
+  animation: bounce-arrow 1s infinite;
+}
+
+@keyframes bounce-arrow {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* =============================================
+   SHORTS / REELS — Vertical scroll feed
+   ============================================= */
+
+/* Hide scrollbar completely while allowing mousewheel/touch scroll */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Sleek, minimal custom scrollbar for desktop views (far right side of screen) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+}
+
+/* =============================================
+   PERFORMANCE — GPU compositing & paint isolation
+   ============================================= */
+
+/* Promote sticky/fixed sidebars to their own GPU compositing layer.
+   This prevents the browser from re-painting the sidebar whenever the
+   right panel scrolls, eliminating visual jitter on scroll. */
+aside[class*="sticky"],
+aside[class*="fixed"],
+.sidebar-fixed {
+  will-change: transform;
+  transform: translateZ(0); /* force GPU layer */
+}
+
+/* Contain layout & style recalculations inside scrollable panels.
+   Changes inside these elements won't trigger layout of sibling panels. */
+main[class*="overflow-y"],
+.scroll-isolated {
+  contain: layout style;
+}
+
+
+/* =============================================
+   BREAKING NEWS TICKER — scrolling animation
+   ============================================= */
+
+.ticker-wrapper {
+  display: inline-block;
+  width: 100%;
+}
+
+.ticker-content {
+  display: inline-block;
+  animation: ticker 40s linear infinite;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
+}
+
+.ticker-content:hover {
+  animation-play-state: paused;
+}
+
+/* ========================================================
+   PUNE MAJHA ADMIN PANEL — iOS GLASSMORPHISM DESIGN SYSTEM
+   ======================================================== */
+
+.admin-glass-panel {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism for Admin Buttons & CTAs */
+.admin-glass-panel button:not([class*="bg-transparent"]):not([class*="variant=ghost"]),
+.admin-glass-panel .btn {
+  position: relative;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.admin-glass-panel button:active:not(:disabled),
+.admin-glass-panel .btn:active:not(:disabled) {
+  transform: scale(0.97) !important;
+}
+
+/* Blue Primary CTAs (Publish, Save, Edit, Update, Submit) */
+.admin-glass-panel .bg-blue-600,
+.admin-glass-panel button.bg-blue-600 {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.95) 0%, rgba(29, 78, 216, 0.90) 100%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.30), inset 0 1px 1.5px rgba(255, 255, 255, 0.45) !important;
+}
+
+.admin-glass-panel .bg-blue-600:hover,
+.admin-glass-panel button.bg-blue-600:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.98) 0%, rgba(37, 99, 235, 0.94) 100%) !important;
+  box-shadow: 0 6px 22px rgba(37, 99, 235, 0.42), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-1px);
+}
+
+/* Red / Danger CTAs (Delete, Reject, Clear, Logout) */
+.admin-glass-panel .bg-red-600,
+.admin-glass-panel button.bg-red-600 {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.90) 100%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.32), inset 0 1px 1.5px rgba(255, 255, 255, 0.45) !important;
+}
+
+.admin-glass-panel .bg-red-600:hover,
+.admin-glass-panel button.bg-red-600:hover {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.98) 0%, rgba(239, 68, 68, 0.94) 100%) !important;
+  box-shadow: 0 6px 22px rgba(239, 68, 68, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-1px);
+}
+
+/* Emerald / Green CTAs (Approve, Verify, Activate, Success) */
+.admin-glass-panel .bg-emerald-600,
+.admin-glass-panel button.bg-emerald-600,
+.admin-glass-panel .bg-green-600,
+.admin-glass-panel button.bg-green-600 {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.90) 100%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.32), inset 0 1px 1.5px rgba(255, 255, 255, 0.45) !important;
+}
+
+.admin-glass-panel .bg-emerald-600:hover,
+.admin-glass-panel button.bg-emerald-600:hover,
+.admin-glass-panel .bg-green-600:hover,
+.admin-glass-panel button.bg-green-600:hover {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.98) 0%, rgba(16, 185, 129, 0.94) 100%) !important;
+  box-shadow: 0 6px 22px rgba(16, 185, 129, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-1px);
+}
+
+/* Indigo / Purple CTAs */
+.admin-glass-panel .bg-indigo-600,
+.admin-glass-panel button.bg-indigo-600 {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.95) 0%, rgba(67, 56, 202, 0.90) 100%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.32), inset 0 1px 1.5px rgba(255, 255, 255, 0.45) !important;
+}
+
+.admin-glass-panel .bg-indigo-600:hover,
+.admin-glass-panel button.bg-indigo-600:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.98) 0%, rgba(79, 70, 229, 0.94) 100%) !important;
+  box-shadow: 0 6px 22px rgba(79, 70, 229, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-1px);
+}
+
+/* Glassmorphism for Outline / Secondary White Buttons */
+.admin-glass-panel button.bg-white,
+.admin-glass-panel button.border-gray-200:not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-indigo"]) {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(226, 232, 240, 0.85) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.95) !important;
+}
+
+.admin-glass-panel button.bg-white:hover,
+.admin-glass-panel button.border-gray-200:hover:not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-indigo"]) {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(203, 213, 225, 0.95) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07), inset 0 1px 1.5px rgba(255, 255, 255, 1) !important;
+  transform: translateY(-1px);
+}
+
+/* Glassmorphism for Pastel Tint Action Buttons (Quick Actions) */
+.admin-glass-panel .bg-blue-50 {
+  background: rgba(239, 246, 255, 0.78) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  border: 1px solid rgba(191, 219, 254, 0.7) !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.85) !important;
+}
+.admin-glass-panel .bg-blue-50:hover {
+  background: rgba(219, 234, 254, 0.90) !important;
+  border-color: rgba(147, 197, 253, 0.9) !important;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+.admin-glass-panel .bg-emerald-50 {
+  background: rgba(236, 253, 245, 0.78) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  border: 1px solid rgba(167, 243, 208, 0.7) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.85) !important;
+}
+.admin-glass-panel .bg-emerald-50:hover {
+  background: rgba(209, 250, 229, 0.90) !important;
+  border-color: rgba(110, 231, 183, 0.9) !important;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+.admin-glass-panel .bg-red-50 {
+  background: rgba(254, 242, 242, 0.78) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  border: 1px solid rgba(254, 202, 202, 0.7) !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.85) !important;
+}
+.admin-glass-panel .bg-red-50:hover {
+  background: rgba(254, 226, 226, 0.90) !important;
+  border-color: rgba(252, 165, 165, 0.9) !important;
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+/* ─── INSTAGRAM REELS & YOUTUBE SHORTS HYBRID UTILITIES ─── */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes reel-disc-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-disc-spin {
+  animation: reel-disc-spin 6s linear infinite;
+}
+
+@keyframes heart-pop {
+  0% { transform: scale(0); opacity: 0; }
+  35% { transform: scale(1.3); opacity: 1; }
+  70% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.4) translateY(-30px); opacity: 0; }
+}
+.animate-heart-pop {
+  animation: heart-pop 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes music-note-float {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  40% { opacity: 0.9; }
+  100% { transform: translate(-20px, -45px) scale(1.1); opacity: 0; }
+}
+.animate-float-music {
+  animation: music-note-float 2.2s ease-out infinite;
+}
+
+@keyframes marquee-audio-scroll {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+.animate-audio-marquee {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee-audio-scroll 14s linear infinite;
+}
+
+/* ─── INSTAGRAM REELS / IOS EQUALIZER & GLASS BUTTONS ─── */
+@keyframes eq-bounce-1 {
+  0%, 100% { height: 4px; }
+  50% { height: 13px; }
+}
+@keyframes eq-bounce-2 {
+  0%, 100% { height: 11px; }
+  50% { height: 5px; }
+}
+@keyframes eq-bounce-3 {
+  0%, 100% { height: 6px; }
+  50% { height: 14px; }
+}
+.animate-eq-1 { animation: eq-bounce-1 0.8s ease-in-out infinite; }
+.animate-eq-2 { animation: eq-bounce-2 0.7s ease-in-out 0.18s infinite; }
+.animate-eq-3 { animation: eq-bounce-3 0.9s ease-in-out 0.35s infinite; }
+
+.ios-glass-btn {
+  background: rgba(18, 18, 22, 0.45);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+.ios-glass-btn:active {
+  transform: scale(0.85);
+}
+
+/* ─── ARTICLE DETAIL MOBILE RESPONSIVE SAFETY ─── */
+.article-prose-content {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  word-wrap: break-word;
+}
+
+.article-prose-content p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.article-prose-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 0.75rem;
+}
+
+.article-prose-content table {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block;
+  overflow-x: auto;
+}
+
+.article-prose-content pre,
+.article-prose-content code {
+  max-width: 100% !important;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.article-prose-content iframe {
+  max-width: 100% !important;
+}
+
+.article-prose-content a {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+/* =============================================
+   MOTION LAYER (public website)
+   Driven by components/MotionLayer.jsx. Uses the independent
+   `translate`/`scale` properties so existing transforms are untouched.
+   ============================================= */
+
+/* Lenis smooth scrolling */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
+.lenis.lenis-smooth:not(.lenis-scrolling) iframe { pointer-events: auto; }
+
+/* Page-to-page transition: soft fade, rise and de-blur.
+   `backwards` fill: nothing lingers after the animation (keeps fixed/sticky children correct). */
+.view-enter {
+  animation: view-enter 460ms var(--ease-out) backwards;
+}
+@keyframes view-enter {
+  from { opacity: 0; translate: 0 12px; filter: blur(6px); }
+  to   { opacity: 1; translate: none; filter: none; }
+}
+
+/* Scroll reveal */
+.reveal-pending {
+  opacity: 0;
+  translate: 0 22px;
+}
+.reveal-in {
+  opacity: 1;
+  translate: none;
+  transition: opacity 700ms var(--ease-out), translate 800ms var(--ease-out);
+}
+
+/* Images fade in when loaded instead of popping */
+img.img-fade { opacity: 0; transition: opacity 500ms var(--ease-out); }
+img.img-fade.img-loaded { opacity: 1; }
+
+/* Cards: gentle lift + image zoom on hover (desktop only) */
+@media (hover: hover) and (pointer: fine) {
+  :where(main .cursor-pointer:is(.rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl), main article.cursor-pointer) {
+    transition-property: translate, box-shadow, color, background-color, border-color, opacity, transform;
+    transition-duration: 300ms;
+    transition-timing-function: var(--ease-out);
+  }
+  :where(main .cursor-pointer:is(.rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl), main article.cursor-pointer):hover {
+    translate: 0 -3px;
+  }
+  main .cursor-pointer img:not([class*="scale"]) {
+    transition: scale 700ms var(--ease-out), opacity 500ms var(--ease-out);
+  }
+  main .cursor-pointer:hover img:not([class*="scale"]) {
+    scale: 1.035;
+  }
+}
+
+/* Links & nav: smooth colour changes everywhere */
+:where(a, nav button) {
+  transition-property: color, background-color, border-color, opacity, box-shadow, scale;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-enter { animation: none; }
+  .reveal-pending { opacity: 1; translate: none; }
+  img.img-fade { opacity: 1; }
+}
+
+/* =============================================
+   ARTICLE READING TYPOGRAPHY (news detail)
+   ============================================= */
+.article-prose-content > * + * { margin-top: 1.1em; }
+.article-prose-content p { line-height: 1.85; color: #1f2937; }
+.article-prose-content h2,
+.article-prose-content h3 {
+  font-weight: 800;
+  color: #131b4d;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  margin-top: 1.6em;
+  padding-left: 0.75rem;
+  border-left: 3px solid #ec2027;
+}
+.article-prose-content h2 { font-size: 1.35em; }
+.article-prose-content h3 { font-size: 1.15em; }
+.article-prose-content strong, .article-prose-content b { font-weight: 700; color: #111827; }
+.article-prose-content a { color: #1e296b; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.article-prose-content blockquote {
+  border-left: 3px solid #1e296b;
+  background: #f4f6fc;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0 0.75rem 0.75rem 0;
+  font-style: italic;
+  color: #374151;
+}
+.article-prose-content ul, .article-prose-content ol { padding-left: 1.4rem; }
+.article-prose-content ul { list-style: disc; }
+.article-prose-content ol { list-style: decimal; }
+.article-prose-content li + li { margin-top: 0.4em; }
+.article-prose-content > p:first-child::first-letter {
+  float: left;
+  font-size: 3.1em;
+  line-height: 0.9;
+  font-weight: 900;
+  color: #ec2027;
+  margin: 0.08em 0.12em 0 0;
+}

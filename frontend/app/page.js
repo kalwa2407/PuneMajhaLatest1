@@ -27,8 +27,26 @@ async function fetchInitialNews() {
     const snapshot = await withDeadline(db.collection('news_articles')
       .where('approvalStatus', '==', 'approved')
       .where('active', '==', true)
+      .select(
+        'title',
+        'category',
+        'categoryId',
+        'city',
+        'mainImage',
+        'thumbnailUrl',
+        'thumbnails',
+        'galleryImages',
+        'images',
+        'youtubeUrl',
+        'videoUrl',
+        'featured',
+        'views',
+        'publishedAt',
+        'createdAt',
+        'metaDescription'
+      )
       .limit(350)
-      .get(), 5000)
+      .get(), 12000)
 
     // Sort in memory (fallback method from API)
     let articles = snapshot.docs.map(doc => {

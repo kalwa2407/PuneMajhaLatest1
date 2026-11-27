@@ -407,7 +407,7 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
   }
 
   return (
-    <div className="w-full max-w-[1340px] mx-auto px-4 lg:px-6 py-5 md:py-8 min-w-0 overflow-x-hidden" key={language}>
+    <div className="w-full max-w-[1340px] mx-auto px-4 lg:px-6 py-5 md:py-8 min-w-0 overflow-x-hidden supports-[overflow:clip]:overflow-x-clip" key={language}>
       <ReadingProgress />
 
       {/* Editorial Breadcrumb & Controls Ribbon */}
@@ -730,7 +730,7 @@ const NewsDetailPage = ({ article, setCurrentView, setSelectedArticle }) => {
         </article>
 
         {/* RIGHT EDITORIAL SIDEBAR */}
-        <aside className="lg:col-span-4 space-y-6 w-full min-w-0">
+        <aside className="lg:col-span-4 space-y-5 w-full min-w-0 lg:sticky lg:top-[68px] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
           {/* Related Stories */}
           {relatedNews.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-300 p-4 shadow-xs">

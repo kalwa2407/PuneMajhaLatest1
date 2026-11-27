@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
-import { ChevronRight, Radio } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { getLocalizedText } from '@/lib/newsData'
 import { proxyImageUrl } from '@/lib/imageProxy'
@@ -14,7 +14,7 @@ import { resolveNewsImage, fallbackNewsImage } from './newsHelpers'
 const ColumnLeadCard = ({ items, title, badgeText, categoryKey, borderClass, badgeClass, onNewsClick, onCategoryClick, language, t }) => {
   if (!items?.length) return null
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 p-4 shadow-xs h-full flex flex-col">
+    <div className="bg-white rounded-2xl border border-slate-300 p-4 shadow-xs h-full flex flex-col">
       <div className={`flex items-center justify-between mb-3.5 border-b-2 ${borderClass} pb-2.5`}>
         <h2 className="text-base font-black text-brand-navy uppercase tracking-wide">{title}</h2>
         <button onClick={() => onCategoryClick(categoryKey)} className="text-brand-red text-xs font-bold hover:underline flex items-center gap-0.5">
@@ -35,7 +35,7 @@ const ColumnLeadCard = ({ items, title, badgeText, categoryKey, borderClass, bad
           <SafeDate date={items[0].publishedAt} format="short" showClock={true} className="text-[10px] text-gray-400 flex items-center gap-1" />
         </div>
       )}
-      <div className="space-y-0 mt-auto divide-y divide-gray-100 border-t border-gray-100 pt-1">
+      <div className="space-y-0 mt-auto divide-y divide-slate-200 border-t border-slate-200 pt-1">
         {items.slice(1, 3).map((item) => (
           <div key={item.id} onClick={() => onNewsClick(item)} className="flex gap-3 cursor-pointer group py-2.5 last:pb-0">
             <div className="relative w-20 h-14 flex-shrink-0 overflow-hidden bg-slate-100 rounded-lg">
@@ -100,32 +100,41 @@ export const PoliticsCrimeLiveSection = ({
           </div>
         )}
 
-        {/* Dark Broadcast Console Card for Live TV (desktop) */}
-        <div className="lg:col-span-4 hidden lg:flex flex-col bg-[#0B122E] text-white rounded-2xl p-4 shadow-xl border border-brand-navy-light/30">
-          <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-white/10">
-            <h2 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
-              <Radio className="w-4 h-4 text-brand-red animate-pulse" />
+        {/* Minimal Editorial Live TV Card matching neighbor columns */}
+        <div className="lg:col-span-4 hidden lg:flex flex-col bg-white rounded-2xl border border-slate-300 p-4 shadow-xs h-full">
+          <div className="flex items-center justify-between mb-3.5 border-b-2 border-brand-red pb-2.5">
+            <h2 className="text-base font-black text-brand-navy uppercase tracking-wide flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-brand-red animate-pulse" />
               {t('liveTv') || 'Live TV'}
             </h2>
-            <button onClick={() => setCurrentView('live-tv')} className="text-white bg-brand-red hover:bg-brand-red-dark text-[10px] font-black uppercase tracking-wider flex items-center gap-1 px-3 py-1 rounded-full transition-colors">
-              {t('watchNow') || 'Watch Now'} <ChevronRight className="w-3 h-3" />
+            <button onClick={() => setCurrentView('live-tv')} className="text-brand-red text-xs font-bold hover:underline flex items-center gap-0.5 cursor-pointer">
+              {t('watchNow') || 'Watch Now'} <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="relative aspect-video bg-black overflow-hidden rounded-xl border border-white/10 shadow-inner">
+
+          <div className="relative aspect-video bg-slate-950 overflow-hidden rounded-xl border border-slate-200 mb-3">
             <LazyYouTube videoId={siteConfig.youtube.defaultVideoId} title={`${siteConfig.brand.shortName} Live`} />
-            <div className="absolute top-2.5 left-2.5 bg-brand-red text-white text-[9px] font-black px-2 py-0.5 uppercase rounded-full flex items-center gap-1 shadow-md pointer-events-none">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              {t('live') || 'LIVE'}
-            </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-            <div>
-              <h3 className="font-black text-sm text-white leading-none">{siteConfig.brand.name}</h3>
-              <p className="text-[11px] text-blue-200/75 font-medium mt-1">{t('realNewsRealTime') || 'Real News. Real Time.'}</p>
+
+          <div className="mt-auto space-y-2.5 pt-2 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-[15px] text-gray-900 leading-snug">{siteConfig.brand.name}</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{t('realNewsRealTime') || 'Real News. Real Time.'}</p>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-brand-red bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full">
+                {t('live') || 'LIVE'}
+              </span>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-400/20 px-2.5 py-1 rounded-full">
-              24x7 HD
-            </span>
+
+            <button
+              type="button"
+              onClick={() => setCurrentView('live-tv')}
+              className="w-full py-2.5 px-4 rounded-xl bg-brand-navy hover:bg-brand-red text-white text-xs font-bold flex items-center justify-between transition-colors cursor-pointer"
+            >
+              <span>{t('liveTvBroadcast') || 'Live TV Broadcast'}</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -148,29 +157,27 @@ export const CategoryGridSection = ({
 
   return (
     <section className="mb-12 w-full max-w-[1340px] mx-auto px-4 lg:px-6">
-      <div className="flex items-center justify-between mb-5 border-t-2 border-gray-200/80 pt-4">
+      <div className="flex items-center justify-between mb-5 border-t-2 border-slate-300 pt-4">
         <h2 className="text-lg font-black text-brand-navy flex items-center gap-2.5 uppercase tracking-wide">
           <span className={`w-2 h-5 ${barColor} rounded-full block`} />
           {title}
         </h2>
-        <button onClick={() => onCategoryClick(categoryKey)} className={`${linkColor} text-xs font-extrabold flex items-center gap-1 hover:underline bg-slate-50 px-3 py-1 rounded-full border border-gray-200/70`}>
+        <button onClick={() => onCategoryClick(categoryKey)} className={`${linkColor} text-xs font-extrabold flex items-center gap-1 hover:underline bg-slate-50 px-3 py-1 rounded-full border border-slate-300`}>
           {t('viewAll') || 'View All'} <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {variant === 'spotlight' && items.length >= 2 ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-          {/* Left Featured Lead */}
           <div className="lg:col-span-5">
             <NewsBox item={items[0]} onClick={onNewsClick} language={language} />
           </div>
-          {/* Right 3 Stacked Horizontal Stories */}
           <div className="lg:col-span-7 flex flex-col justify-between gap-3">
             {items.slice(1, 4).map((item) => (
               <div
                 key={item.id}
                 onClick={() => onNewsClick(item)}
-                className="bg-white border border-gray-200/80 hover:border-brand-navy/40 rounded-2xl p-3 flex gap-4 items-center cursor-pointer group shadow-xs hover:shadow-md transition-all flex-1"
+                className="bg-white border border-slate-300 hover:border-brand-navy rounded-2xl p-3 flex gap-4 items-center cursor-pointer group shadow-xs hover:shadow-md transition-all flex-1"
               >
                 <div className="relative w-28 sm:w-36 aspect-[16/10] shrink-0 overflow-hidden rounded-xl bg-slate-100">
                   <Image

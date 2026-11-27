@@ -196,33 +196,33 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
       <div className="relative w-full rounded-[24px] overflow-hidden mb-8 h-[160px] md:h-[200px] shadow-sm">
         <Image src="/city_icon_delhi_1789524771933.jpg" alt="All News" fill className="absolute inset-0 object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-transparent" />
-        
+
         <div className="relative z-10 w-full h-full flex items-center justify-between p-6 md:px-12">
           {/* Left Text */}
           <div className="max-w-md">
-            <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter mb-2 text-gray-900 leading-none drop-shadow-sm">
-              {language === 'mr' ? <>सर्व <span className="text-red-600">बातम्या</span></> : language === 'hi' ? <>सभी <span className="text-red-600">समाचार</span></> : <>All <span className="text-red-600">News</span></>}
+            <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-2 text-brand-navy leading-none">
+              {language === 'mr' ? <>सर्व <span className="text-brand-red">बातम्या</span></> : language === 'hi' ? <>सभी <span className="text-brand-red">समाचार</span></> : <>All <span className="text-brand-red">News</span></>}
             </h1>
             <p className="text-gray-600 font-medium text-xs md:text-sm leading-relaxed hidden sm:block">
-              {language === 'hi' ? 'भारत और विश्व से ताज़ा ख़बरें' : language === 'mr' ? 'भारत आणि जगातील ताज्या बातम्या' : 'Explore the latest news, in-depth analysis and stories that matter from across India and around the world.'}
+              {language === 'hi' ? 'पुणे, महाराष्ट्र और देश से ताज़ा ख़बरें' : language === 'mr' ? 'पुणे, महाराष्ट्र आणि देशातील ताज्या बातम्या' : 'Explore the latest news, in-depth analysis and stories from Pune, Maharashtra and beyond.'}
             </p>
           </div>
 
           {/* Right Top Story Card (Hidden on Mobile) */}
           {heroArticle && (
-            <div className="hidden lg:block w-[380px] bg-white/90 backdrop-blur-md rounded-2xl p-5 shadow-xl border border-white/60 relative overflow-hidden group cursor-pointer hover:shadow-2xl transition-all" onClick={() => viewArticle(heroArticle)}>
-              <Badge className="bg-red-600 text-white border-none font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 mb-3 shadow-sm">
+            <div className="hidden lg:block w-[380px] bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-lg border border-slate-300 relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all" onClick={() => viewArticle(heroArticle)}>
+              <Badge className="bg-brand-red text-white border-none font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 mb-3 shadow-sm">
                 {t('topStory') || (language === 'mr' ? 'टॉप स्टोरी' : language === 'hi' ? 'टॉप स्टोरी' : 'TOP STORY')}
               </Badge>
-              <h3 className="font-heading font-black text-lg text-gray-900 leading-tight tracking-tight mb-3 group-hover:text-red-600 transition-colors line-clamp-2">
+              <h3 className="font-heading font-black text-lg text-gray-900 leading-tight tracking-tight mb-3 group-hover:text-brand-navy transition-colors line-clamp-2">
                 {getLocalizedText(heroArticle.title, language) || heroArticle.title}
               </h3>
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest" suppressHydrationWarning>
-                  <Clock className="w-3.5 h-3.5 text-red-500" />
+                  <Clock className="w-3.5 h-3.5 text-brand-red" />
                   {mounted && (heroArticle.publishedAt || heroArticle.createdAt) ? new Date(heroArticle.publishedAt || heroArticle.createdAt).toLocaleDateString(language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
                 </span>
-                <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-white shadow-md transform group-hover:translate-x-1 transition-transform">
+                <div className="w-7 h-7 rounded-full bg-brand-navy group-hover:bg-brand-red flex items-center justify-center text-white shadow-md transform group-hover:translate-x-1 transition-all">
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </div>
@@ -233,13 +233,13 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
 
       {/* SEARCH QUERY BANNER */}
       {searchQuery && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-between shadow-sm animate-in fade-in">
+        <div className="mb-6 bg-blue-50/70 border border-slate-300 rounded-2xl p-4 flex items-center justify-between shadow-sm animate-in fade-in">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center font-bold shrink-0">
+            <div className="w-9 h-9 rounded-full bg-brand-navy text-white flex items-center justify-center font-bold shrink-0">
               <Search className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-red-600 uppercase tracking-wider">{t('searchResults') || 'Search Results'}</p>
+              <p className="text-[11px] font-bold text-brand-red uppercase tracking-wider">{t('searchResults') || 'Search Results'}</p>
               <h3 className="text-base font-black text-gray-900 leading-tight">
                 {language === 'mr' ? `"${searchQuery}" साठी बातम्या दाखवत आहे` : language === 'hi' ? `"${searchQuery}" के लिए समाचार दिखा रहे हैं` : `Showing articles for "${searchQuery}"`}
               </h3>
@@ -247,7 +247,7 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
           </div>
           <button
             onClick={() => setSearchQuery('')}
-            className="px-3.5 py-1.5 bg-white border border-gray-200 hover:border-red-600 text-xs font-bold text-gray-700 hover:text-red-600 rounded-full transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="px-3.5 py-1.5 bg-white border border-slate-300 hover:border-brand-red text-xs font-bold text-gray-700 hover:text-brand-red rounded-full transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <X className="w-3.5 h-3.5" /> {t('clearSearch') || 'Clear Search'}
           </button>
@@ -255,12 +255,12 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
       )}
 
       {/* FILTER & SORT BAR */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-100 pb-4 relative z-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-slate-200 pb-4 relative z-20">
         {/* Category Pills */}
         <div className="flex-1 w-full overflow-x-auto hide-scrollbar flex items-center gap-2 pb-1">
           <button
             onClick={() => handleCategoryChange('all')}
-            className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-wide font-black whitespace-nowrap transition-all border shadow-sm ${currentCategory === 'all' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}
+            className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-wide font-black whitespace-nowrap transition-all border shadow-xs ${currentCategory === 'all' ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-gray-600 border-slate-300 hover:border-brand-navy'}`}
           >
             {t('all') || (language === 'mr' ? 'सर्व' : language === 'hi' ? 'सभी' : 'All')}
           </button>
@@ -268,7 +268,7 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
             <button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.slug)}
-              className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-wide font-black whitespace-nowrap transition-all border shadow-sm ${currentCategory === cat.slug ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}
+              className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-wide font-black whitespace-nowrap transition-all border shadow-xs ${currentCategory === cat.slug ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-gray-600 border-slate-300 hover:border-brand-navy'}`}
             >
               {getTranslatedCategory(cat.name, language)}
             </button>
@@ -278,7 +278,7 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
         {/* Sort & Layout Controls */}
         <div className="flex items-center gap-3 shrink-0 w-full md:w-auto justify-between md:justify-end">
           <Select defaultValue="latest">
-            <SelectTrigger className="w-[130px] h-8 bg-white border-gray-200 rounded-md text-[11px] font-bold text-gray-600 focus:ring-0 shadow-sm uppercase tracking-wide">
+            <SelectTrigger className="w-[130px] h-8 bg-white border-slate-300 rounded-md text-[11px] font-bold text-gray-600 focus:ring-0 shadow-xs uppercase tracking-wide">
               <SelectValue placeholder={t('latestFirst') || 'Latest First'} />
             </SelectTrigger>
             <SelectContent>
@@ -288,8 +288,8 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-1 bg-gray-50 rounded-md p-1 border border-gray-200 shadow-sm hidden sm:flex">
-            <button className="w-7 h-6 rounded flex items-center justify-center bg-red-600 text-white shadow-sm">
+          <div className="flex items-center gap-1 bg-slate-50 rounded-md p-1 border border-slate-300 shadow-xs hidden sm:flex">
+            <button className="w-7 h-6 rounded flex items-center justify-center bg-brand-navy text-white shadow-sm">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             </button>
             <button className="w-7 h-6 rounded flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
@@ -304,11 +304,11 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
         {gridArticles.map((article, idx) => (
           <div
             key={article.id}
-            className={`group rounded-2xl overflow-hidden cursor-pointer border border-gray-200 bg-white hover:shadow-xl active:scale-[0.99] transition-all duration-300 flex flex-row sm:flex-col h-full ${idx === 0 && heroArticle?.id === article.id ? 'lg:hidden' : ''}`}
+            className={`group rounded-2xl overflow-hidden cursor-pointer border border-slate-300 hover:border-brand-navy bg-white hover:shadow-lg active:scale-[0.99] transition-all duration-300 flex flex-row sm:flex-col h-full ${idx === 0 && heroArticle?.id === article.id ? 'lg:hidden' : ''}`}
             onClick={() => viewArticle(article)}
           >
             {/* Image Container */}
-            <div className="relative overflow-hidden bg-gray-100 w-[118px] shrink-0 self-stretch min-h-[96px] sm:w-full sm:min-h-0 sm:aspect-[16/10]">
+            <div className="relative overflow-hidden bg-slate-100 w-[118px] shrink-0 self-stretch min-h-[96px] sm:w-full sm:min-h-0 sm:aspect-[16/10]">
               <Image
                 src={proxyImageUrl(
                   (article.thumbnails && article.thumbnails[0]) ||
@@ -326,10 +326,10 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
                   e.currentTarget.srcset = '';
                 }}
               />
-              
+
               {/* Top-Left Category Badge */}
               <div className="absolute top-3 left-3 z-10 hidden sm:block">
-                <Badge className="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold px-3 py-1 rounded-full border-none shadow-sm capitalize">
+                <Badge className="bg-brand-navy hover:bg-brand-navy-dark text-white text-[10px] font-bold px-3 py-1 rounded-full border-none shadow-sm capitalize">
                   {getTranslatedCategory(article.category, language) || t('news')}
                 </Badge>
               </div>
@@ -339,14 +339,14 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
             <div className="p-3 sm:p-5 flex-1 flex flex-col min-w-0">
               {/* Date/Time */}
               <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 mb-1 sm:mb-2 order-last sm:order-none mt-auto sm:mt-0" suppressHydrationWarning>
-                <Clock className="w-3.5 h-3.5 text-red-500" />
+                <Clock className="w-3.5 h-3.5 text-brand-red" />
                 <span suppressHydrationWarning>
                   {mounted && (article.publishedAt || article.createdAt) ? new Date(article.publishedAt || article.createdAt).toLocaleDateString(language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
                 </span>
               </div>
 
               {/* Title */}
-              <h3 className="font-heading font-black text-[15px] sm:text-[17px] leading-snug sm:leading-tight mb-1 sm:mb-2 text-gray-900 group-hover:text-red-600 transition-colors line-clamp-3">
+              <h3 className="font-heading font-black text-[15px] sm:text-[17px] leading-snug sm:leading-tight mb-1 sm:mb-2 text-gray-900 group-hover:text-brand-navy transition-colors line-clamp-3">
                 {getLocalizedText(article.title, language) || article.title}
               </h3>
 
@@ -357,7 +357,7 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
 
               {/* Read More */}
               <div className="mt-auto pt-1 hidden sm:block">
-                <span className="font-bold text-red-600 text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                <span className="font-bold text-brand-red text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                   {t('readMore') || 'Read More'} <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </div>
@@ -372,7 +372,7 @@ const NewsPage = ({ setSelectedArticle, setCurrentView, newsPageState, setNewsPa
           <Button
             onClick={handleShowMore}
             disabled={loadingMore}
-            className="group bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black text-sm px-12 py-7 rounded-full shadow-xl shadow-red-200 hover:shadow-2xl hover:shadow-red-300 transition-all hover:-translate-y-1 disabled:opacity-60"
+            className="group bg-brand-navy hover:bg-brand-red text-white font-black text-xs uppercase tracking-wider px-10 py-6 rounded-full shadow-md transition-all disabled:opacity-60"
           >
             {loadingMore ? (
               <>

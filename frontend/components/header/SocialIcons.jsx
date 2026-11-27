@@ -32,18 +32,28 @@ export const TwitterIcon = ({ className = 'h-5 w-5' }) => (
   </svg>
 )
 
-export function SocialLinksBar() {
+export function SocialLinksBar({ variant = 'light' }) {
   const { social } = siteConfig
   const items = [
-    { href: social.facebook, label: 'Facebook', hover: 'hover:bg-[#1877F2]', icon: <FacebookIcon /> },
-    { href: social.whatsapp, label: 'WhatsApp', hover: 'hover:bg-[#25D366]', icon: <WhatsAppIcon /> },
-    { href: social.instagram, label: 'Instagram', hover: 'hover:bg-[#E4405F]', icon: <InstagramIcon /> },
-    { href: social.youtube, label: 'YouTube', hover: 'hover:bg-[#FF0000]', icon: <YouTubeIcon /> },
-    { href: social.twitter, label: 'X', hover: 'hover:bg-gray-900', icon: <TwitterIcon /> },
+    { href: social.facebook, label: 'Facebook', hover: 'hover:bg-[#1877F2]', icon: <FacebookIcon className="w-4 h-4" /> },
+    { href: social.whatsapp, label: 'WhatsApp', hover: 'hover:bg-[#25D366]', icon: <WhatsAppIcon className="w-4 h-4" /> },
+    { href: social.instagram, label: 'Instagram', hover: 'hover:bg-[#E4405F]', icon: <InstagramIcon className="w-4 h-4" /> },
+    { href: social.youtube, label: 'YouTube', hover: 'hover:bg-[#FF0000]', icon: <YouTubeIcon className="w-4 h-4" /> },
+    { href: social.twitter, label: 'X', hover: 'hover:bg-gray-900', icon: <TwitterIcon className="w-4 h-4" /> },
   ].filter((item) => Boolean(item.href))
 
+  const wrapperClass =
+    variant === 'dark'
+      ? 'flex items-center gap-1'
+      : 'flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-full px-2.5 py-1'
+
+  const linkClass =
+    variant === 'dark'
+      ? 'w-7 h-7 flex items-center justify-center rounded-full text-blue-100/85 hover:text-white transition-all duration-200'
+      : 'w-7 h-7 flex items-center justify-center rounded-full text-gray-600 hover:text-white transition-all duration-200'
+
   return (
-    <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full px-3 py-1.5">
+    <div className={wrapperClass}>
       {items.map((item) => (
         <a
           key={item.label}
@@ -51,7 +61,7 @@ export function SocialLinksBar() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={item.label}
-          className={`w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:text-white ${item.hover} transition-all duration-200`}
+          className={`${linkClass} ${item.hover}`}
         >
           {item.icon}
         </a>

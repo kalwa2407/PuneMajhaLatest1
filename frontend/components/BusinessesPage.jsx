@@ -186,7 +186,7 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
               <MapPin className="w-4 h-4 text-gray-400" />
               <span>Pune, Maharashtra</span>
             </div>
-            <Button aria-label="Search" className="h-11 px-4 sm:px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shrink-0">
+            <Button aria-label="Search" className="h-11 px-4 sm:px-6 bg-brand-navy hover:bg-brand-red text-white font-bold rounded-lg shrink-0">
               <Search className="w-4 h-4 sm:hidden" />
               <span className="hidden sm:inline">{t('search') || 'Search'} →</span>
             </Button>
@@ -195,11 +195,11 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
       </div>
 
       {/* ─── PUNE LOCALITY FILTER CHIPS (Camp & Kondhwa Focus) ─── */}
-      <div className="bg-slate-50 border-b border-gray-200 py-3">
+      <div className="bg-slate-50 border-b border-slate-300 py-3">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 flex-nowrap sm:flex-wrap overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
             <span className="shrink-0 text-xs font-black text-gray-500 uppercase tracking-wider flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-red-600" />
+              <MapPin className="w-3.5 h-3.5 text-brand-red" />
               Localities:
             </span>
             {[
@@ -214,15 +214,15 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
                 <button
                   key={loc.id}
                   onClick={() => setSelectedLocality(loc.id)}
-                  className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${
+                  className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs border ${
                     isLocActive
-                      ? 'bg-red-600 text-white border-red-600 shadow-md ring-2 ring-red-200'
-                      : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      ? 'bg-brand-navy text-white border-brand-navy shadow-md ring-2 ring-blue-200'
+                      : 'bg-white text-gray-700 border-slate-300 hover:border-brand-navy hover:bg-gray-50'
                   }`}
                 >
                   <span>{loc.label}</span>
                   <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                    isLocActive ? 'bg-red-800 text-white' : 'bg-gray-100 text-gray-600'
+                    isLocActive ? 'bg-brand-red text-white' : 'bg-gray-100 text-gray-600'
                   }`}>
                     {loc.count}
                   </span>
@@ -240,7 +240,7 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
       </div>
 
       {/* ─── CATEGORY TABS ─── */}
-      <div className="border-b border-gray-100 bg-white shadow-sm py-3 sm:py-5">
+      <div className="border-b border-slate-200 bg-white shadow-sm py-3 sm:py-5">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
           <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1 sm:pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
             {[
@@ -263,13 +263,13 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
                   key={cat.label}
                   onClick={() => setSelectedCategory(i === 0 ? 'All Categories' : cat.label)}
                   className={`shrink-0 flex flex-col items-center justify-center gap-1.5 sm:gap-2 min-w-[82px] h-[76px] sm:min-w-[105px] sm:h-[90px] rounded-2xl sm:rounded-[18px] border transition-all duration-300 ${
-                    isActive ? 'border-red-500 bg-red-50/50 shadow-sm text-red-600' : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md hover:-translate-y-1 text-gray-700'
+                    isActive ? 'border-brand-navy bg-blue-50/70 shadow-sm text-brand-navy' : 'border-slate-300 bg-white hover:border-brand-navy/50 hover:shadow-md hover:-translate-y-1 text-gray-700'
                   }`}
                 >
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${isActive ? 'bg-white shadow-sm' : cat.color}`}>
-                    {isActive ? <LayoutGrid className="w-5 h-5 text-red-500" /> : cat.icon}
+                    {isActive ? <LayoutGrid className="w-5 h-5 text-brand-red" /> : cat.icon}
                   </div>
-                  <span className={`text-[10px] font-bold tracking-wide ${isActive ? 'text-red-600' : 'text-gray-600'} text-center px-1 leading-tight`}>{getCategoryLabel(cat.label)}</span>
+                  <span className={`text-[10px] font-bold tracking-wide ${isActive ? 'text-brand-navy' : 'text-gray-600'} text-center px-1 leading-tight`}>{getCategoryLabel(cat.label)}</span>
                 </button>
               )
             })}
@@ -282,12 +282,12 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
         <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_280px] gap-6 lg:gap-8">
 
           {/* LEFT: Filters (desktop; phones use the locality chips + category tiles above) */}
-          <aside className="hidden lg:block lg:sticky lg:top-[68px] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide space-y-5 bg-slate-50/70 border border-gray-200/80 rounded-2xl p-4">
+          <aside className="hidden lg:block lg:sticky lg:top-[68px] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide space-y-5 bg-slate-50 border border-slate-300 rounded-2xl p-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-black text-sm text-gray-900">{t('filters') || 'Filters'}</h3>
+              <h3 className="font-black text-sm text-brand-navy">{t('filters') || 'Filters'}</h3>
               <button 
                 onClick={() => { setSelectedCategory('All Categories'); setSelectedLocality('All Localities'); setSearchTerm(''); }}
-                className="text-red-600 hover:text-red-700 text-xs font-bold"
+                className="text-brand-red hover:underline text-xs font-bold"
               >
                 {t('clearAll') || 'Clear All'}
               </button>
@@ -295,9 +295,9 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
 
             {/* Location */}
             <div>
-              <p className="text-xs font-black text-gray-700 mb-2 flex items-center gap-1"><MapPin className="w-3 h-3 text-red-500" /> {t('location') || 'Pune Locality'}</p>
+              <p className="text-xs font-black text-gray-700 mb-2 flex items-center gap-1"><MapPin className="w-3 h-3 text-brand-red" /> {t('location') || 'Pune Locality'}</p>
               <select 
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white"
                 value={selectedLocality}
                 onChange={(e) => setSelectedLocality(e.target.value)}
               >
@@ -312,7 +312,7 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
             {/* Category */}
             <div>
               <p className="text-xs font-black text-gray-700 mb-2">{t('category') || 'Category'}</p>
-              <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>
+              <select className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>
                 {BUSINESS_CATEGORIES.map(c => <option key={c} value={c}>{getCategoryLabel(c)}</option>)}
               </select>
             </div>
@@ -327,7 +327,7 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
                 { val: 'Any rating', label: t('anyRating') || 'Any rating' },
               ].map(r => (
                 <label key={r.val} className="flex items-center gap-2 text-xs text-gray-600 py-1 cursor-pointer">
-                  <input type="radio" name="rating" className="accent-red-600" /> {r.label}
+                  <input type="radio" name="rating" className="accent-brand-navy" /> {r.label}
                 </label>
               ))}
             </div>
@@ -343,12 +343,12 @@ const BusinessesPage = ({ setSelectedBusiness, setCurrentView }) => {
                 { id: 'booking', label: t('onlineBooking') || 'Online Booking' },
               ].map(bt => (
                 <label key={bt.id} className="flex items-center gap-2 text-xs text-gray-600 py-1 cursor-pointer">
-                  <input type="checkbox" className="accent-red-600" /> {bt.label}
+                  <input type="checkbox" className="accent-brand-navy" /> {bt.label}
                 </label>
               ))}
             </div>
 
-            <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-sm">{t('applyFilters') || 'Apply Filters'}</Button>
+            <Button className="w-full bg-brand-navy hover:bg-brand-red text-white font-bold rounded-lg text-sm">{t('applyFilters') || 'Apply Filters'}</Button>
           </aside>
 
           {/* CENTER: Results Grid */}

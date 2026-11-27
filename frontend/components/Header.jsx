@@ -118,8 +118,8 @@ const Header = ({ user, currentView, setCurrentView, handleLogout, setSelectedAr
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <SocialLinksBar className="scale-90 [&_a]:bg-white/10 [&_a]:text-white/90 [&_a:hover]:text-white" />
+          <div className="flex items-center gap-3.5">
+            <SocialLinksBar variant="dark" />
             <div className="w-px h-4 bg-white/20" />
 
             {/* 1-Click Segmented Language Switcher */}

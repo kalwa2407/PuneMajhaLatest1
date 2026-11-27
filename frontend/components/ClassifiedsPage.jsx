@@ -411,7 +411,7 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
               <MapPin className="w-4 h-4 text-gray-400" />
               <span>{language === 'mr' ? 'पुणे, महाराष्ट्र' : language === 'hi' ? 'पुणे, महाराष्ट्र' : 'Pune, Maharashtra'}</span>
             </div>
-            <Button aria-label="Search" className="h-11 px-4 sm:px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shrink-0">
+            <Button aria-label="Search" className="h-11 px-4 sm:px-6 bg-brand-navy hover:bg-brand-red text-white font-bold rounded-lg shrink-0">
               <Search className="w-4 h-4 sm:hidden" />
               <span className="hidden sm:inline">{t('search') || 'Search'} →</span>
             </Button>
@@ -420,7 +420,7 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
       </div>
 
       {/* ─── CATEGORY TABS ─── */}
-      <div className="border-b border-gray-100 bg-white shadow-sm py-3 sm:py-5">
+      <div className="border-b border-slate-200 bg-white shadow-sm py-3 sm:py-5">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-stretch md:items-start gap-3 md:gap-4">
           <div className="flex-1 flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1 sm:pb-2 -mx-4 px-4 md:mx-0 md:px-0">
             {[
@@ -440,20 +440,20 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
                 <button
                   key={cat.label}
                   onClick={() => setActiveTab(cat.label)}
-                  className={`shrink-0 flex flex-col items-center justify-center gap-1.5 sm:gap-2 min-w-[76px] h-[72px] sm:min-w-[95px] sm:h-[90px] rounded-2xl sm:rounded-[18px] border transition-all duration-300 ${isActive ? 'border-red-500 bg-red-50/50 shadow-sm text-red-600' : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md hover:-translate-y-1 text-gray-700'
+                  className={`shrink-0 flex flex-col items-center justify-center gap-1.5 sm:gap-2 min-w-[76px] h-[72px] sm:min-w-[95px] sm:h-[90px] rounded-2xl sm:rounded-[18px] border transition-all duration-300 ${isActive ? 'border-brand-navy bg-blue-50/70 shadow-sm text-brand-navy' : 'border-slate-300 bg-white hover:border-brand-navy/50 hover:shadow-md hover:-translate-y-1 text-gray-700'
                     }`}
                 >
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${isActive ? 'bg-white shadow-sm' : cat.color}`}>
-                    {isActive ? <LayoutGrid className="w-5 h-5 text-red-500" /> : cat.icon}
+                    {isActive ? <LayoutGrid className="w-5 h-5 text-brand-red" /> : cat.icon}
                   </div>
-                  <span className={`text-[10px] font-bold tracking-wide ${isActive ? 'text-red-600' : 'text-gray-600'}`}>{getCategoryLabel(cat.label)}</span>
+                  <span className={`text-[10px] font-bold tracking-wide ${isActive ? 'text-brand-navy' : 'text-gray-600'}`}>{getCategoryLabel(cat.label)}</span>
                 </button>
               )
             })}
           </div>
-          <button onClick={() => setShowCreateModal(true)} className="shrink-0 h-12 md:h-[90px] px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl md:rounded-[18px] shadow-lg shadow-red-200 flex md:flex-col items-center justify-center gap-2 md:gap-1 transition-all hover:-translate-y-1 w-full md:w-auto">
+          <button onClick={() => setShowCreateModal(true)} className="shrink-0 h-12 md:h-[90px] px-8 bg-brand-red hover:bg-brand-red-dark text-white rounded-xl md:rounded-[18px] shadow-md flex md:flex-col items-center justify-center gap-2 md:gap-1 transition-all hover:-translate-y-1 w-full md:w-auto">
             <span className="font-black text-sm flex items-center gap-1"><Plus className="w-4 h-4" /> {t('postClassifiedAd') || 'Post a Classified Ad'}</span>
-            <span className="text-[10px] opacity-80 font-medium">{t('freeAndEasy') || "It's free and easy"}</span>
+            <span className="text-[10px] opacity-85 font-medium">{t('freeAndEasy') || "It's free and easy"}</span>
           </button>
         </div>
       </div>
@@ -463,16 +463,16 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
         <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_280px] gap-6 lg:gap-8">
 
           {/* LEFT: Filters (desktop only; phones use the search box + category tabs) */}
-          <aside className="hidden lg:block lg:sticky lg:top-[68px] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide space-y-5 bg-slate-50/70 border border-gray-200/80 rounded-2xl p-4">
+          <aside className="hidden lg:block lg:sticky lg:top-[68px] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide space-y-5 bg-slate-50 border border-slate-300 rounded-2xl p-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-black text-sm text-gray-900">{t('filters') || 'Filters'}</h3>
-              <button className="text-red-600 text-[11px] font-bold">{t('clearAll') || 'Clear All'}</button>
+              <h3 className="font-black text-sm text-brand-navy">{t('filters') || 'Filters'}</h3>
+              <button className="text-brand-red text-[11px] font-bold">{t('clearAll') || 'Clear All'}</button>
             </div>
 
             {/* Location */}
             <div>
               <p className="text-[10px] font-black text-gray-700 mb-2 flex items-center gap-1 tracking-wider uppercase"><MapPin className="w-3 h-3" /> {t('location') || 'Location'}</p>
-              <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white">
+              <select className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white">
                 <option>{language === 'mr' ? 'पुणे, महाराष्ट्र' : language === 'hi' ? 'पुणे, महाराष्ट्र' : 'Pune, Maharashtra'}</option>
               </select>
             </div>
@@ -480,7 +480,7 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
             {/* Category */}
             <div>
               <p className="text-[10px] font-black text-gray-700 mb-2 flex items-center gap-1 tracking-wider uppercase"><Tag className="w-3 h-3" /> {t('category') || 'Category'}</p>
-              <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white">
+              <select className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white">
                 <option>{t('allCategories') || 'All Categories'}</option>
               </select>
             </div>
@@ -489,9 +489,9 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
             <div>
               <p className="text-[10px] font-black text-gray-700 mb-2 flex items-center gap-1 tracking-wider uppercase"><IndianRupee className="w-3 h-3" /> {t('priceRange') || 'Price Range'}</p>
               <div className="flex gap-2 text-sm">
-                <Input placeholder="₹ Min" className="h-9" />
+                <Input placeholder="₹ Min" className="h-9 border-slate-300" />
                 <span className="text-gray-400 mt-1">-</span>
-                <Input placeholder="₹ Max" className="h-9" />
+                <Input placeholder="₹ Max" className="h-9 border-slate-300" />
               </div>
             </div>
 
@@ -500,7 +500,7 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
               <p className="text-[10px] font-black text-gray-700 mb-2 flex items-center gap-1 tracking-wider uppercase"><Sparkles className="w-3 h-3" /> {t('condition') || 'Condition'}</p>
               {['New', 'Used', 'Refurbished'].map(bt => (
                 <label key={bt} className="flex items-center gap-2 text-xs text-gray-600 py-1.5 cursor-pointer">
-                  <input type="checkbox" className="accent-red-600 w-4 h-4 rounded border-gray-300" /> {getConditionLabel(bt)}
+                  <input type="checkbox" className="accent-brand-navy w-4 h-4 rounded border-slate-300" /> {getConditionLabel(bt)}
                 </label>
               ))}
             </div>
@@ -510,12 +510,12 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
               <p className="text-[10px] font-black text-gray-700 mb-2 flex items-center gap-1 tracking-wider uppercase"><MapPin className="w-3 h-3" /> {t('postedBy') || 'Posted By'}</p>
               {['Individual', 'Business'].map(bt => (
                 <label key={bt} className="flex items-center gap-2 text-xs text-gray-600 py-1.5 cursor-pointer">
-                  <input type="checkbox" className="accent-red-600 w-4 h-4 rounded border-gray-300" /> {getPostedByLabel(bt)}
+                  <input type="checkbox" className="accent-brand-navy w-4 h-4 rounded border-slate-300" /> {getPostedByLabel(bt)}
                 </label>
               ))}
             </div>
 
-            <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg h-11 text-sm mt-4">{t('applyFilters') || 'Apply Filters'}</Button>
+            <Button className="w-full bg-brand-navy hover:bg-brand-red text-white font-bold rounded-lg h-11 text-sm mt-4">{t('applyFilters') || 'Apply Filters'}</Button>
           </aside>
 
           {/* CENTER: Grid */}
@@ -543,7 +543,7 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
                 <p className="text-xs text-gray-500 mb-5 max-w-sm mx-auto">
                   {language === 'mr' ? 'पहिली जाहिरात पोस्ट करा आणि हजारो स्थानिक ग्राहकांपर्यंत पोहोचा.' : language === 'hi' ? 'पहला विज्ञापन पोस्ट करें और हजारों स्थानीय ग्राहकों तक पहुंचें।' : 'Be the first to post a classified ad and reach verified local buyers across Maharashtra.'}
                 </p>
-                <Button onClick={() => setShowCreateModal(true)} className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs h-9 px-5 shadow-sm active:scale-95 transition-transform">
+                <Button onClick={() => setShowCreateModal(true)} className="bg-brand-navy hover:bg-brand-red text-white font-bold rounded-lg text-xs h-9 px-5 shadow-sm active:scale-95 transition-transform">
                   {t('postYourAd') || 'Post Your Ad'} →
                 </Button>
               </div>
@@ -553,20 +553,20 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
                   const displayPrice = convertToINR(ad.price)
                   const cardImg = getAdCardImage(ad)
                   return (
-                    <div key={ad.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden group cursor-pointer hover:shadow-lg transition-all flex flex-col" onClick={() => handleContactSeller(ad)}>
-                      <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                    <div key={ad.id} className="bg-white border border-slate-300 hover:border-brand-navy rounded-xl overflow-hidden group cursor-pointer hover:shadow-lg transition-all flex flex-col" onClick={() => handleContactSeller(ad)}>
+                      <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
                         <Image src={cardImg} alt={ad.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 33vw" />
                         {['New', 'Excellent', 'Urgent'].includes(ad.condition) && (
-                          <Badge className={`absolute top-2 left-2 ${ad.condition === 'New' ? 'bg-green-500 text-white' : ad.condition === 'Urgent' ? 'bg-red-600 text-white' : 'bg-yellow-400 text-yellow-950'} hover:opacity-90 border-none px-2 py-0.5 text-[9px] font-black uppercase shadow-sm`}>
+                          <Badge className={`absolute top-2 left-2 ${ad.condition === 'New' ? 'bg-green-500 text-white' : ad.condition === 'Urgent' ? 'bg-brand-red text-white' : 'bg-yellow-400 text-yellow-950'} hover:opacity-90 border-none px-2 py-0.5 text-[9px] font-black uppercase shadow-sm`}>
                             {ad.condition === 'New' ? (t('newCondition') || 'NEW') : ad.condition === 'Excellent' ? (language === 'mr' ? 'खास' : language === 'hi' ? 'विशेष' : 'FEATURED') : (language === 'mr' ? 'तातडीचे' : language === 'hi' ? 'तत्काल' : 'URGENT')}
                           </Badge>
                         )}
-                        <button className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shadow-sm">
+                        <button className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-400 hover:text-brand-red transition-colors shadow-sm">
                           <Heart className="w-3.5 h-3.5" />
                         </button>
                       </div>
                       <div className="p-3 flex flex-col flex-1">
-                        <h4 className="font-black text-sm sm:text-[15px] text-gray-900 leading-tight mb-1 tabular-nums truncate">{displayPrice || (language === 'mr' ? 'संपर्क करा' : language === 'hi' ? 'संपर्क करें' : 'Contact')}</h4>
+                        <h4 className="font-black text-sm sm:text-[15px] text-brand-navy leading-tight mb-1 tabular-nums truncate">{displayPrice || (language === 'mr' ? 'संपर्क करा' : language === 'hi' ? 'संपर्क करें' : 'Contact')}</h4>
                         <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug mb-2 min-h-[32px]">{ad.title}</p>
                         <div className="flex items-center gap-1 text-[10px] text-gray-500 mb-1 mt-auto">
                           <MapPin className="w-3 h-3 shrink-0" />
@@ -576,8 +576,8 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
                           <Clock className="w-3 h-3 shrink-0" />
                           <span>{timeAgo(ad.createdAt || ad.submittedAt, language)}</span>
                         </div>
-                        <div className="pt-2 border-t border-gray-100 mt-auto flex items-center justify-between">
-                          <span className="text-xs font-bold text-red-600 group-hover:text-red-700 flex items-center gap-1">
+                        <div className="pt-2 border-t border-slate-200 mt-auto flex items-center justify-between">
+                          <span className="text-xs font-bold text-brand-red group-hover:text-brand-navy flex items-center gap-1">
                             {t('viewDetails') || 'View Details'}
                             <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                           </span>
@@ -593,8 +593,8 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
           {/* RIGHT SIDEBAR */}
           <div className="space-y-6">
             {/* Why Post on Pune Majha */}
-            <div className="bg-red-50/30 border border-red-100 rounded-2xl p-5 relative overflow-hidden">
-              <h3 className="font-black text-base text-gray-900 mb-4">{t('whyPostOnStarNews') || `Why Post on ${siteConfig.brand.shortName}?`}</h3>
+            <div className="bg-slate-50 border border-slate-300 rounded-2xl p-5 relative overflow-hidden">
+              <h3 className="font-black text-base text-brand-navy mb-4">{t('whyPostOnStarNews') || `Why Post on ${siteConfig.brand.shortName}?`}</h3>
               <ul className="space-y-3 relative z-10">
                 {[
                   t('whyPostPoint1') || 'Reach genuine buyers & sellers',
@@ -603,30 +603,24 @@ const ClassifiedsPage = ({ user, toast, setSelectedClassified, setCurrentView })
                   t('whyPostPoint4') || 'Wide local reach across Maharashtra'
                 ].map(p => (
                   <li key={p} className="flex gap-2 text-xs text-gray-700 font-bold">
-                    <div className="w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-black shadow-sm">✓</div>
+                    <div className="w-4 h-4 rounded-full bg-brand-navy text-white flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-black shadow-sm">✓</div>
                     {p}
                   </li>
                 ))}
               </ul>
-              <div className="absolute right-[-10px] bottom-4 text-red-500 flex items-end gap-1">
-                <div className="w-2 h-4 bg-red-300 rounded-t-sm" />
-                <div className="w-2 h-8 bg-red-400 rounded-t-sm" />
-                <div className="w-2 h-12 bg-red-500 rounded-t-sm" />
-              </div>
             </div>
 
             {/* Local People Banner */}
-            <div className="bg-[#1a1c29] rounded-2xl p-6 relative overflow-hidden text-white shadow-md">
-              <img src="https://images.unsplash.com/photo-1596706059432-850f865f1a58?w=400&q=80" alt="Pune" className="absolute inset-0 w-full h-full object-cover opacity-[0.15] mix-blend-overlay" />
+            <div className="bg-brand-navy-dark border border-brand-navy rounded-2xl p-6 relative overflow-hidden text-white shadow-md">
               <div className="relative z-10">
                 <h3 className="font-black text-xl leading-tight mb-2">{t('localPeople') || 'Local People'}<br /><span className="text-red-400">{t('realOpportunities') || 'Real Opportunities'}</span></h3>
                 <p className="text-xs text-gray-300 mb-5 leading-relaxed">{t('classifiedSideDesc') || `From homes to jobs, find it all on ${siteConfig.brand.shortName} Classifieds.`}</p>
-                <Button size="sm" onClick={() => setShowCreateModal(true)} className="bg-red-600 hover:bg-red-700 text-[11px] font-bold h-8 rounded-lg shadow-sm cursor-pointer active:scale-95 transition-transform">{t('postYourAd') || 'Post Your Ad'} →</Button>
+                <Button size="sm" onClick={() => setShowCreateModal(true)} className="bg-brand-red hover:bg-brand-red-dark text-[11px] font-bold h-8 rounded-lg shadow-sm cursor-pointer active:scale-95 transition-transform">{t('postYourAd') || 'Post Your Ad'} →</Button>
               </div>
             </div>
 
             {/* Popular Searches */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+            <div className="bg-white border border-slate-300 rounded-2xl p-5 shadow-xs">
               <h3 className="font-black text-sm text-gray-900 mb-4">{t('popularSearches') || 'Popular Searches'}</h3>
               <div className="space-y-3">
                 {(language === 'mr'

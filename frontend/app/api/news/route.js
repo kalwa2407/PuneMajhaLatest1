@@ -108,7 +108,7 @@ export async function GET(request) {
             if (err.message.includes('index') || err.message.includes('FAILED_PRECONDITION')) {
                 console.warn('⚠️ FIRESTORE INDEX MISSING: Falling back to in-memory sorting. Please create the index for better performance.');
 
-                snapshot = await withDeadline(query.limit(limit + 1).get());
+                snapshot = await withDeadline(query.limit(Math.max(limit * 4, 350)).get());
 
                 let tempDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 tempDocs.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));

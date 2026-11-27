@@ -32,7 +32,7 @@ export default function HeroSection({
           <div className="px-4">
             <div
               onClick={() => onNewsClick(cleanMainNews[0])}
-              className="rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-md cursor-pointer group"
+              className="rounded-2xl overflow-hidden bg-white border border-slate-300 shadow-md cursor-pointer group"
             >
               <div className="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden">
                 <Image
@@ -155,7 +155,7 @@ export default function HeroSection({
               {t('viewAll')} <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="divide-y divide-gray-100 bg-white rounded-2xl border border-gray-200/80 px-3.5">
+          <div className="divide-y divide-slate-200 bg-white rounded-2xl border border-slate-300 px-3.5">
             {cleanMainNews.slice(4, 12).map((item) => {
               const title = getLocalizedText(item.title, language)
               const category = getTranslatedCategory(item.category, t, language)
@@ -180,7 +180,7 @@ export default function HeroSection({
       <div className="hidden lg:block max-w-[1340px] mx-auto px-6 pt-3 mb-8">
         <div className="grid grid-cols-12 gap-5 items-stretch">
           {/* LEFT RAIL (3 cols): LIVE WIRE / LATEST BULLETINS */}
-          <div className="col-span-3 flex flex-col bg-white rounded-2xl border border-gray-200/80 shadow-xs p-4">
+          <div className="col-span-3 flex flex-col bg-white rounded-2xl border border-slate-300 shadow-sm p-4">
             <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-brand-navy">
               <h2 className="text-sm font-black uppercase tracking-wider text-brand-navy flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-brand-red animate-pulse" />
@@ -191,7 +191,7 @@ export default function HeroSection({
               </button>
             </div>
 
-            <div className="flex-1 flex flex-col justify-between divide-y divide-gray-100">
+            <div className="flex-1 flex flex-col justify-between divide-y divide-slate-200">
               {cleanLatestNews.slice(0, 6).map((item, idx) => (
                 <div
                   key={item.id}
@@ -225,7 +225,7 @@ export default function HeroSection({
             {cleanMainNews[0] && (
               <div
                 onClick={() => onNewsClick(cleanMainNews[0])}
-                className="relative overflow-hidden cursor-pointer group bg-slate-900 rounded-2xl shadow-md border border-gray-200/80 aspect-[16/10]"
+                className="relative overflow-hidden cursor-pointer group bg-slate-900 rounded-2xl shadow-md border border-slate-300 aspect-[16/10]"
               >
                 <Image
                   src={proxyImageUrl(resolveNewsImage(cleanMainNews[0]))}
@@ -269,7 +269,7 @@ export default function HeroSection({
                 <div
                   key={item.id}
                   onClick={() => onNewsClick(item)}
-                  className="bg-white rounded-2xl border border-gray-200/80 hover:border-brand-navy/40 shadow-xs hover:shadow-md overflow-hidden cursor-pointer group flex flex-col transition-all"
+                  className="bg-white rounded-2xl border border-slate-300 hover:border-brand-navy shadow-xs hover:shadow-md overflow-hidden cursor-pointer group flex flex-col transition-all"
                 >
                   <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
                     <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-cover group-hover:scale-105 transition-transform duration-500" onError={fallbackNewsImage} />
@@ -315,8 +315,8 @@ export default function HeroSection({
         </div>
 
         {/* MUST-READ HORIZONTAL EDITORIAL RIBBON */}
-        <div className="mt-6 bg-slate-50 border border-gray-200/80 rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="mt-6 bg-slate-50 border border-slate-300 rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-300">
             <h2 className="text-sm font-black uppercase tracking-wider text-brand-navy flex items-center gap-2">
               <span className="w-1.5 h-4 bg-brand-red rounded-full" />
               {t('mustRead') || 'Must Read'}
@@ -325,14 +325,14 @@ export default function HeroSection({
               {t('viewAll') || 'View All'} <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="grid grid-cols-4 gap-4 divide-x divide-gray-200/70">
+          <div className="grid grid-cols-4 gap-4 divide-x divide-slate-300">
             {cleanMainNews.slice(3, 7).map((item, idx) => (
               <div
                 key={item.id}
                 onClick={() => onNewsClick(item)}
                 className="flex gap-3 items-start cursor-pointer group pl-4 first:pl-0"
               >
-                <span className="text-2xl font-black text-brand-navy/20 group-hover:text-brand-red transition-colors leading-none shrink-0 tabular-nums">
+                <span className="text-2xl font-black text-brand-navy/35 group-hover:text-brand-red transition-colors leading-none shrink-0 tabular-nums">
                   0{idx + 1}
                 </span>
                 <div className="min-w-0">

@@ -30,7 +30,7 @@ const CITY_ICONS = {
 
 const CityPage = ({ setCurrentView, setSelectedArticle }) => {
     const { language, t } = useLanguage()
-    const [selectedCity, setSelectedCity] = useState('Mumbai')
+    const [selectedCity, setSelectedCity] = useState('Pune')
     const [cityNews, setCityNews] = useState([])
     const [allArticles, setAllArticles] = useState([])
     const [loading, setLoading] = useState(true)
@@ -139,13 +139,13 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
 
             <div className="w-full px-4 md:px-12 mt-8">
                 {/* Popular Cities */}
-                <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+                <div className="bg-white border border-slate-300 rounded-2xl shadow-xs p-6 mb-8">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                            <LayoutGrid className="w-5 h-5 text-red-600" />
+                        <h2 className="text-lg font-black text-brand-navy flex items-center gap-2">
+                            <LayoutGrid className="w-5 h-5 text-brand-red" />
                             {t('popularCities') || 'Popular Cities'}
                         </h2>
-                        <button className="text-red-600 text-sm font-bold flex items-center gap-1 hover:underline">
+                        <button className="text-brand-red text-sm font-bold flex items-center gap-1 hover:underline">
                             {t('viewAllCities') || 'View All Cities'} <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>
@@ -159,7 +159,7 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                                     onClick={() => handleCityClick(city)}
                                     className="flex flex-col items-center gap-3 cursor-pointer group min-w-[80px]"
                                 >
-                                    <div className={`w-20 h-20 rounded-2xl overflow-hidden relative shadow-md transition-all duration-300 p-0.5 ${isSelected ? 'scale-110' : 'bg-transparent border border-gray-200'}`}>
+                                    <div className={`w-20 h-20 rounded-2xl overflow-hidden relative shadow-md transition-all duration-300 p-0.5 ${isSelected ? 'scale-110 ring-2 ring-brand-navy' : 'bg-transparent border border-slate-300'}`}>
                                         <div className="w-full h-full relative rounded-[14px] overflow-hidden bg-white">
                                             <Image 
                                                 src={CITY_ICONS[city] || '/placeholder-news.svg'} 
@@ -169,7 +169,7 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                                             />
                                         </div>
                                     </div>
-                                    <span className={`text-[12px] font-black ${isSelected ? 'text-red-600' : 'text-gray-900'} transition-colors`}>
+                                    <span className={`text-[12px] font-black ${isSelected ? 'text-brand-red' : 'text-gray-900'} transition-colors`}>
                                         {getLocalizedCity(city, language)}
                                     </span>
                                 </div>
@@ -185,7 +185,7 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                             <Search className="h-4 w-4 text-gray-400" />
                         </div>
                         <select
-                            className="block w-full pl-10 pr-10 py-3 text-sm bg-white border border-gray-200 rounded-full font-bold appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-100 shadow-sm"
+                            className="block w-full pl-10 pr-10 py-3 text-sm bg-white border border-slate-300 rounded-full font-bold appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-100 shadow-xs"
                             value={selectedCity}
                             onChange={(e) => setSelectedCity(e.target.value)}
                         >
@@ -200,19 +200,19 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-2">
-                        <Button variant="default" className="bg-red-600 hover:bg-red-700 text-white rounded-full px-5 h-10 text-xs font-black shadow-md flex items-center gap-1.5">
+                        <Button variant="default" className="bg-brand-navy hover:bg-brand-red text-white rounded-full px-5 h-10 text-xs font-black shadow-sm flex items-center gap-1.5">
                             <LayoutGrid className="w-3.5 h-3.5" /> {t('latest') || 'Latest'}
                         </Button>
-                        <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-600 border-gray-200 rounded-full px-5 h-10 text-xs font-bold shadow-sm flex items-center gap-1.5">
+                        <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-700 border-slate-300 rounded-full px-5 h-10 text-xs font-bold shadow-xs flex items-center gap-1.5">
                             <TrendingUp className="w-3.5 h-3.5" /> {t('trending') || 'Trending'}
                         </Button>
-                        <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-600 border-gray-200 rounded-full px-5 h-10 text-xs font-bold shadow-sm flex items-center gap-1.5">
-                            <Flame className="w-3.5 h-3.5 text-orange-500" /> {t('mostRead') || 'Most Read'}
+                        <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-700 border-slate-300 rounded-full px-5 h-10 text-xs font-bold shadow-xs flex items-center gap-1.5">
+                            <Flame className="w-3.5 h-3.5 text-brand-red" /> {t('mostRead') || 'Most Read'}
                         </Button>
-                        <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-600 border-gray-200 rounded-full px-5 h-10 text-xs font-bold shadow-sm flex items-center gap-1.5">
+                        <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-700 border-slate-300 rounded-full px-5 h-10 text-xs font-bold shadow-xs flex items-center gap-1.5">
                             <PlaySquare className="w-3.5 h-3.5" /> {t('videos') || 'Videos'}
                         </Button>
-                        <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-600 border-gray-200 rounded-full px-5 h-10 text-xs font-bold shadow-sm flex items-center gap-1.5">
+                        <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-700 border-slate-300 rounded-full px-5 h-10 text-xs font-bold shadow-xs flex items-center gap-1.5">
                             <Calendar className="w-3.5 h-3.5" /> {t('events') || 'Events'}
                         </Button>
                     </div>
@@ -220,12 +220,12 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
 
                 {/* News Section */}
                 <div className="mb-6 flex items-center justify-between">
-                    <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-                        <span className="w-1.5 h-6 bg-red-600 rounded-full block"></span>
+                    <h2 className="text-2xl font-black text-brand-navy flex items-center gap-2">
+                        <span className="w-1.5 h-6 bg-brand-red rounded-full block"></span>
                         {selectedCity ? `${t('latestFrom') || 'Latest from'} ${getLocalizedCity(selectedCity, language)}` : (t('selectCityTitle') || 'City News')}
                     </h2>
                     {cityNews.length > 0 && (
-                        <button className="text-red-600 text-sm font-bold flex items-center gap-1 hover:underline">
+                        <button className="text-brand-red text-sm font-bold flex items-center gap-1 hover:underline">
                             {t('viewAll') || 'View All'} {getLocalizedCity(selectedCity, language)} {t('news') || 'News'} <ChevronRight className="w-4 h-4" />
                         </button>
                     )}
@@ -235,32 +235,32 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         {/* Main Big Article */}
                         <div 
-                            className={`${cityNews.length > 1 ? 'lg:col-span-5' : 'lg:col-span-12'} relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer min-h-[360px] sm:min-h-[460px] flex flex-col justify-end`}
+                            className={`${cityNews.length > 1 ? 'lg:col-span-5' : 'lg:col-span-12'} relative bg-white border border-slate-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer min-h-[360px] sm:min-h-[460px] flex flex-col justify-end`}
                             onClick={() => handleNewsClick(cityNews[0])}
                         >
                             <Image 
                                 src={proxyImageUrl(cityNews[0].mainImage || cityNews[0].images?.[0] || '/placeholder-news.svg')} 
                                 alt={getLocalizedText(cityNews[0].title, language)}
                                 fill 
-                                className="object-fill w-full h-full" 
+                                className="object-cover w-full h-full" 
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0f111a]/95 via-[#0f111a]/45 to-transparent"></div>
                             
-                            <div className="absolute top-3.5 left-3.5 bg-red-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-md">
-                                {getLocalizedCity(selectedCity || cityNews[0].city || 'Mumbai', language).toUpperCase()}
+                            <div className="absolute top-3.5 left-3.5 bg-brand-red text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-md">
+                                {getLocalizedCity(selectedCity || cityNews[0].city || 'Pune', language).toUpperCase()}
                             </div>
                             <div className="absolute top-3.5 right-3.5 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
                                 {language === 'mr' ? '२ तासांपूर्वी' : language === 'hi' ? '२ घंटे पहले' : '2 hrs ago'}
                             </div>
                             
                             <div className="relative z-10 p-5 sm:p-6 w-full">
-                                <h3 className="text-white text-xl sm:text-2xl font-black leading-tight mb-2.5 group-hover:text-red-100 transition-colors">
+                                <h3 className="text-white text-xl sm:text-2xl font-black leading-tight mb-2.5 group-hover:text-blue-100 transition-colors">
                                     {getLocalizedText(cityNews[0].title, language)}
                                 </h3>
                                 <p className="text-gray-300 text-xs sm:text-sm line-clamp-2 sm:line-clamp-3 mb-4 leading-relaxed font-normal">
                                     {getLocalizedText(cityNews[0].content, language)?.replace(/<[^>]*>/g, '').substring(0, 140)}...
                                 </p>
-                                <button className="bg-red-600 hover:bg-red-700 text-white text-xs font-black px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-lg">
+                                <button className="bg-brand-red hover:bg-brand-red-dark text-white text-xs font-black px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-lg">
                                     {t('readMore') || 'Read More'} <ChevronRight className="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -270,16 +270,16 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                         {cityNews.length > 1 && (
                             <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                                 {cityNews.slice(1, 5).map((item, idx) => (
-                                    <div key={item.id} onClick={() => handleNewsClick(item)} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col border border-gray-100/90">
-                                        <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+                                    <div key={item.id} onClick={() => handleNewsClick(item)} className="bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col border border-slate-300 hover:border-brand-navy">
+                                        <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                                             <Image 
                                                 src={proxyImageUrl(item.mainImage || item.images?.[0] || '/placeholder-news.svg')} 
                                                 alt={getLocalizedText(item.title, language)}
                                                 fill 
-                                                className="object-fill w-full h-full" 
+                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" 
                                             />
-                                            <div className="absolute top-2.5 left-2.5 bg-red-600 text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-sm">
-                                                {getLocalizedCity(selectedCity || item.city || 'Mumbai', language).toUpperCase()}
+                                            <div className="absolute top-2.5 left-2.5 bg-brand-navy text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-sm">
+                                                {getLocalizedCity(selectedCity || item.city || 'Pune', language).toUpperCase()}
                                             </div>
                                             <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md text-white text-[9px] font-bold uppercase px-2 py-0.5 rounded-full shadow-sm">
                                                 {idx + 1 * 4} {language === 'mr' ? (idx % 2 === 0 ? 'तासांपूर्वी' : 'दिवसांपूर्वी') : language === 'hi' ? (idx % 2 === 0 ? 'घंटे पहले' : 'दिन पहले') : (idx % 2 === 0 ? 'hrs ago' : 'days ago')}
@@ -287,7 +287,7 @@ const CityPage = ({ setCurrentView, setSelectedArticle }) => {
                                         </div>
                                         <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
                                             <div>
-                                                <h4 className="font-bold text-[14px] sm:text-[15px] leading-snug text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2 mb-1.5">
+                                                <h4 className="font-bold text-[14px] sm:text-[15px] leading-snug text-gray-900 group-hover:text-brand-navy transition-colors line-clamp-2 mb-1.5">
                                                     {getLocalizedText(item.title, language)}
                                                 </h4>
                                                 <p className="text-gray-500 text-xs line-clamp-2 leading-relaxed mb-3">

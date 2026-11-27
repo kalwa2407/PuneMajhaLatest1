@@ -27,7 +27,7 @@ async function fetchInitialNews() {
     const snapshot = await withDeadline(db.collection('news_articles')
       .where('approvalStatus', '==', 'approved')
       .where('active', '==', true)
-      .limit(100)
+      .limit(350)
       .get(), 5000)
 
     // Sort in memory (fallback method from API)

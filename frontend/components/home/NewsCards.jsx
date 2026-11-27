@@ -72,7 +72,7 @@ export const NewsBox = ({ item, onClick, language }) => {
 
   return (
     <div
-      className="group cursor-pointer overflow-hidden bg-white border border-gray-200/80 hover:border-brand-navy/40 shadow-xs hover:shadow-lg rounded-2xl transition-all duration-300 mb-4 md:mb-0 flex flex-col h-full relative"
+      className="group cursor-pointer overflow-hidden bg-white border border-slate-300 hover:border-brand-navy shadow-xs hover:shadow-lg rounded-2xl transition-all duration-300 mb-4 md:mb-0 flex flex-col h-full relative"
       onClick={() => onClick(item)}
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
@@ -102,7 +102,7 @@ export const NewsBox = ({ item, onClick, language }) => {
             {title}
           </h3>
         </div>
-        <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between">
+        <div className="mt-3 pt-2.5 border-t border-slate-200 flex items-center justify-between">
           <SafeDate
             date={item.publishedAt || item.createdAt}
             format="long"
@@ -152,7 +152,7 @@ export const NewsCard = ({ item, onClick, accentColor = 'red', language }) => {
 
   return (
     <div
-      className="bg-white rounded-2xl overflow-hidden border border-gray-200/80 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer group flex flex-col h-full"
+      className="bg-white rounded-2xl overflow-hidden border border-slate-300 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer group flex flex-col h-full"
       onClick={() => onClick(item)}
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">

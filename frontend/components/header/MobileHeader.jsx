@@ -8,6 +8,7 @@ import { Menu, X, Home, Newspaper, Building2, FileText, Tag, Shield, LogOut, Log
 import VideoLogo from '@/components/VideoLogo'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { ROLES } from '@/lib/roles'
+import { siteConfig } from '@/lib/siteConfig'
 
 export default function MobileHeader({
   user,
@@ -25,45 +26,52 @@ export default function MobileHeader({
   const navItems = [
     { view: 'home', label: t('home') },
     { view: 'news', label: t('news') },
-    { view: 'enewspaper', label: t('eNewspaper') },
     { view: 'city', label: t('cityNews') },
+    { view: 'enewspaper', label: t('eNewspaper') },
     { view: 'shorts', label: t('shorts') || 'Shorts' },
-    { view: 'classifieds', label: t('classified') },
     { view: 'businesses', label: t('businessDirectory') },
+    { view: 'classifieds', label: t('classified') },
   ]
 
   return (
     <div className="lg:hidden w-full max-w-full overflow-hidden">
-      {/* Top Navy Brand Bar */}
-      <div
-        className="text-white flex items-center justify-between px-4 h-16 sticky top-0 z-50 relative overflow-hidden w-full max-w-full shadow-[0_3px_14px_rgba(19,27,77,0.38)]"
-        style={{ background: 'linear-gradient(180deg, #27368A 0%, #1E296B 60%, #131B4D 100%)' }}
-      >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(130px 64px at 50% 50%, rgba(255,255,255,0.22), transparent 72%)' }} />
-        <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-brand-red to-transparent pointer-events-none" />
+      {/* Top Crisp White Editorial Bar with Navy Top Accent */}
+      <div className="bg-white border-t-[3px] border-t-brand-navy border-b border-gray-200 flex items-center justify-between px-3.5 h-16 sticky top-0 z-50 w-full max-w-full shadow-sm">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 -ml-1 hover:bg-blue-50 text-brand-navy rounded-xl transition-colors active:scale-95 shrink-0"
+            aria-label="Menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
 
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors active:scale-95 relative z-10" aria-label="Menu">
-          <Menu className="h-6 w-6 text-white" />
-        </button>
-
-        {/* Center Logo Badge */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10" onClick={() => setCurrentView('home')}>
-          <div className="flex-shrink-0 bg-white rounded-full p-0.5 shadow-[0_6px_18px_rgba(0,0,0,0.28)] ring-2 ring-white/50 active:scale-95 transition-transform duration-150">
-            <VideoLogo className="w-[50px] h-[50px] rounded-full" />
+          <div className="flex items-center gap-2 cursor-pointer min-w-0" onClick={() => setCurrentView('home')}>
+            <div className="w-10 h-10 rounded-xl border border-brand-navy/15 bg-white p-0.5 shrink-0 overflow-hidden shadow-xs">
+              <VideoLogo className="w-full h-full" />
+            </div>
+            <div className="flex flex-col leading-none min-w-0">
+              <span className="font-serif text-[16px] font-black tracking-tight text-brand-navy truncate">
+                {siteConfig.brand.localizedName[language] || siteConfig.brand.shortName}
+              </span>
+              <span className="text-[9px] font-black uppercase tracking-widest text-brand-red truncate mt-0.5">
+                {siteConfig.brand.tagline}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 relative z-10">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={onOpenSearch}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors active:scale-95 cursor-pointer"
+            className="p-2 bg-slate-100 hover:bg-slate-200 text-brand-navy rounded-full transition-colors active:scale-95 cursor-pointer"
             title="Search news"
           >
-            <Search className="h-5 w-5 text-white" />
+            <Search className="h-4 w-4" />
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="text-[10px] font-black w-8 h-8 flex items-center justify-center rounded-full bg-white text-brand-navy ml-1 shadow-sm">
+              <button className="text-[10px] font-black px-2.5 h-8 flex items-center justify-center rounded-full bg-brand-navy text-white shadow-sm">
                 {language.toUpperCase()}
               </button>
             </DropdownMenuTrigger>
@@ -78,15 +86,17 @@ export default function MobileHeader({
         </div>
       </div>
 
-      {/* Scrolling Category Bar */}
-      <div className="bg-white/90 backdrop-blur-xl backdrop-saturate-150 border-b border-black/[0.06] overflow-x-auto scrollbar-hide py-0.5 sticky top-16 z-40 w-full max-w-full">
-        <div className="flex items-center px-4 space-x-6 whitespace-nowrap">
+      {/* Navy Scrolling Category Strip */}
+      <div className="bg-brand-navy text-white overflow-x-auto scrollbar-hide sticky top-16 z-40 w-full max-w-full border-b border-brand-navy-dark shadow-sm">
+        <div className="flex items-center px-3 py-1.5 space-x-2 whitespace-nowrap">
           {navItems.map((item) => (
             <button
               key={item.view}
               onClick={() => setCurrentView(item.view)}
-              className={`text-[13px] font-extrabold pb-2.5 pt-2 border-b-2 transition-all ${
-                currentView === item.view ? 'text-brand-navy border-brand-red' : 'text-gray-500 border-transparent'
+              className={`text-[12px] font-bold px-3 py-1 rounded-full transition-all ${
+                currentView === item.view
+                  ? 'bg-brand-red text-white shadow-sm'
+                  : 'text-blue-100/90 hover:text-white hover:bg-white/10'
               }`}
             >
               {item.label}
@@ -94,8 +104,10 @@ export default function MobileHeader({
           ))}
           <button
             onClick={() => setCurrentView('live-tv')}
-            className={`text-[13px] font-extrabold pb-2.5 pt-2 border-b-2 transition-all flex items-center gap-1.5 ${
-              currentView === 'live-tv' ? 'text-brand-red border-brand-red' : 'text-gray-500 border-transparent'
+            className={`text-[12px] font-black px-3 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+              currentView === 'live-tv'
+                ? 'bg-white text-brand-red'
+                : 'bg-brand-red/20 text-red-200 border border-red-400/30'
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse" />
@@ -110,13 +122,15 @@ export default function MobileHeader({
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
           <div className="relative bg-white w-[280px] h-full shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-300">
             <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-              <div className="w-12 h-12 relative overflow-hidden flex items-center justify-center">
-                <VideoLogo className="w-full h-full" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 relative overflow-hidden flex items-center justify-center rounded-lg border border-gray-200 bg-white">
+                  <VideoLogo className="w-full h-full" />
+                </div>
+                <span className="font-bold text-base text-brand-navy">
+                  {siteConfig.brand.shortName}
+                </span>
               </div>
-              <span className="font-bold text-lg text-brand-navy absolute left-1/2 -translate-x-1/2">
-                {t('menu') || (language === 'mr' ? 'मेनू' : language === 'hi' ? 'मेनू' : 'Menu')}
-              </span>
-              <button onClick={() => setMobileMenuOpen(false)} className="p-1 rounded-full hover:bg-gray-200 transition-colors">
+              <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 rounded-full hover:bg-gray-200 transition-colors">
                 <X className="h-5 w-5 text-gray-600" />
               </button>
             </div>

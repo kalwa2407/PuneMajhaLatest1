@@ -87,8 +87,8 @@ export default function BusinessEconomySection({
                 className="min-w-[270px] sm:min-w-0 flex-1 snap-start cursor-pointer group overflow-hidden relative bg-white/5 border border-white/10 hover:border-emerald-400/40 transition-all rounded-xl hover:bg-white/10 flex flex-col"
               >
                 <div className="relative aspect-[16/10] overflow-hidden bg-gray-900 rounded-t-xl">
-                  <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-fill w-full h-full" onError={fallbackNewsImage} />
-                  <span className={`absolute top-2.5 left-2.5 ${labelColors[idx]} text-white text-[9px] font-black px-2.5 py-1 uppercase tracking-wider rounded shadow-md`}>
+                  <Image src={proxyImageUrl(resolveNewsImage(item))} alt={getLocalizedText(item.title, language)} fill className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" onError={fallbackNewsImage} />
+                  <span className={`absolute top-2.5 left-2.5 ${labelColors[idx]} text-white text-[9px] font-black px-2.5 py-1 uppercase tracking-wider rounded-full shadow-md`}>
                     {labels[idx]}
                   </span>
                 </div>

@@ -20,7 +20,37 @@ const Footer = ({ setCurrentView }) => {
 
   return (
     <footer className="bg-[#0b1128] text-gray-300 mt-12 border-t-4 border-brand-red">
-      <div className="container mx-auto px-5 py-10 md:py-12">
+      {/* Top Motto & Tip Line Band */}
+      <div className="bg-brand-navy border-b border-white/10">
+        <div className="max-w-[1340px] mx-auto px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="w-10 h-10 rounded-xl bg-white p-0.5 object-contain shrink-0 shadow" />
+            <div>
+              <span className="font-serif font-black text-white text-lg block leading-tight">{brandTitle}</span>
+              <span className="text-[11px] font-bold text-red-300 tracking-wide">{siteConfig.brand.motto[language] || siteConfig.brand.tagline}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <a
+              href={siteConfig.social.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#25D366] hover:bg-[#1da851] text-white text-xs font-black px-4 py-2 rounded-full transition-colors shadow-sm"
+            >
+              {t('whatsAppUs') || 'WhatsApp News Desk'}
+            </a>
+            <button
+              onClick={() => setCurrentView('enewspaper')}
+              className="bg-brand-red hover:bg-brand-red-dark text-white text-xs font-black px-4 py-2 rounded-full transition-colors shadow-sm"
+            >
+              {t('eNewspaper')}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-[1340px] mx-auto px-5 py-10 md:py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-3 mb-3">

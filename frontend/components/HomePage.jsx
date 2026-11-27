@@ -231,6 +231,14 @@ const HomePage = ({ setCurrentView, setSelectedArticle, newsData, setNewsData })
         setCurrentView={setCurrentView}
       />
 
+      <PoliticsCrimeLiveSection
+        cleanPoliticsNews={cleanPoliticsNews}
+        cleanCrimeNews={cleanCrimeNews}
+        onNewsClick={handleNewsClick}
+        onCategoryClick={handleCategoryClick}
+        setCurrentView={setCurrentView}
+      />
+
       <BusinessEconomySection
         cleanBusinessNews={cleanBusinessNews}
         stockData={stockData}
@@ -238,14 +246,6 @@ const HomePage = ({ setCurrentView, setSelectedArticle, newsData, setNewsData })
         articleAdSettings={articleAdSettings}
         onNewsClick={handleNewsClick}
         onCategoryClick={handleCategoryClick}
-      />
-
-      <PoliticsCrimeLiveSection
-        cleanPoliticsNews={cleanPoliticsNews}
-        cleanCrimeNews={cleanCrimeNews}
-        onNewsClick={handleNewsClick}
-        onCategoryClick={handleCategoryClick}
-        setCurrentView={setCurrentView}
       />
 
       <JoinNetworkBanner onOpenModal={() => setIsReporterModalOpen(true)} />
@@ -279,9 +279,9 @@ const HomePage = ({ setCurrentView, setSelectedArticle, newsData, setNewsData })
         </section>
       )}
 
-      <CategoryGridSection items={cleanSportsNews} title={t('sportsNews') || 'Sports News'} categoryKey="sports" barColor="bg-green-600" linkColor="text-green-600 hover:text-green-700" onNewsClick={handleNewsClick} onCategoryClick={handleCategoryClick} />
+      <CategoryGridSection items={cleanSportsNews} title={t('sportsNews') || 'Sports News'} categoryKey="sports" barColor="bg-green-600" linkColor="text-green-600 hover:text-green-700" variant="spotlight" onNewsClick={handleNewsClick} onCategoryClick={handleCategoryClick} />
       <CategoryGridSection items={cleanEducationNews} title={t('educationAndLearning') || 'Education & Learning'} categoryKey="education" barColor="bg-brand-navy" linkColor="text-brand-navy hover:text-brand-navy-dark" onNewsClick={handleNewsClick} onCategoryClick={handleCategoryClick} />
-      <CategoryGridSection items={cleanHealthNews} title={t('healthAndWellness') || 'Health & Wellness'} categoryKey="health" barColor="bg-emerald-600" linkColor="text-emerald-600 hover:text-emerald-700" onNewsClick={handleNewsClick} onCategoryClick={handleCategoryClick} />
+      <CategoryGridSection items={cleanHealthNews} title={t('healthAndWellness') || 'Health & Wellness'} categoryKey="health" barColor="bg-emerald-600" linkColor="text-emerald-600 hover:text-emerald-700" variant="spotlight" onNewsClick={handleNewsClick} onCategoryClick={handleCategoryClick} />
       <CategoryGridSection items={cleanTechnologyNews} title={t('technologyAndInnovation') || 'Technology & Innovation'} categoryKey="technology" barColor="bg-purple-600" linkColor="text-purple-600 hover:text-purple-700" onNewsClick={handleNewsClick} onCategoryClick={handleCategoryClick} />
 
       <FloatingWhatsAppButton />

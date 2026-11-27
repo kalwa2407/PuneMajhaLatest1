@@ -7,10 +7,10 @@ export const metadata = {
   description: siteConfig.brand.description,
   icons: {
     icon: [
-      { url: siteConfig.assets.favicon, type: 'image/png', sizes: '256x256' },
-      { url: '/favicon.ico', sizes: 'any' },
+      { url: `${siteConfig.assets.favicon}?v=2`, type: 'image/png', sizes: '256x256' },
+      { url: '/favicon.ico?v=2', sizes: 'any' },
     ],
-    shortcut: siteConfig.assets.favicon,
+    shortcut: `${siteConfig.assets.favicon}?v=2`,
     apple: siteConfig.assets.appleIcon,
   },
 }

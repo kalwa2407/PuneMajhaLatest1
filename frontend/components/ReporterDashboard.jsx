@@ -511,7 +511,7 @@ const ReporterDashboard = ({ user, onLogout }) => {
           {/* Brand & Portal Title */}
           <div className="flex items-center gap-4 shrink-0">
             <div className="flex items-center gap-2">
-              <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="h-8 w-auto object-contain rounded" />
+              <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="h-9 w-9 rounded-full object-contain" />
               <div className="flex flex-col leading-none">
                 <span className="text-[13px] font-black tracking-wider text-brand-navy uppercase">{siteConfig.brand.shortName}</span>
                 <span className="text-[9px] font-bold tracking-[0.22em] text-brand-red uppercase">News</span>

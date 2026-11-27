@@ -1673,7 +1673,7 @@ const AdminDashboard = ({ user, toast, onLogout, setCurrentView }) => {
       {/* ─── DARK SIDEBAR (desktop only) ─── */}
       <aside className="hidden lg:flex w-[260px] bg-[#111827] text-gray-300 flex-col h-full shrink-0 shadow-2xl z-20">
         <div className="h-16 flex items-center px-6 bg-[#0B101E] border-b border-gray-800">
-          <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="h-9 w-auto object-contain pointer-events-none drop-shadow-md bg-white/95 rounded px-1.5 py-0.5" />
+          <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="h-9 w-9 rounded-full object-contain pointer-events-none drop-shadow-md" />
         </div>
         
         <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1 hide-scrollbar">
@@ -1777,7 +1777,7 @@ const AdminDashboard = ({ user, toast, onLogout, setCurrentView }) => {
         {/* ─── MOBILE TOP HEADER (mobile only) ─── */}
         <header className="lg:hidden h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
           <div className="flex items-center gap-2">
-            <img src={siteConfig.assets.logo} alt={siteConfig.brand.shortName} className="h-8 w-auto object-contain" />
+            <img src={siteConfig.assets.logo} alt={siteConfig.brand.shortName} className="h-8 w-8 rounded-full object-contain" />
           </div>
           <div className="flex items-center gap-2">
             <Button

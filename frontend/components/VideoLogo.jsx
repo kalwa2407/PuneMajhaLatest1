@@ -19,7 +19,7 @@ export default function VideoLogo({ className = '', style = {}, tight = false })
       <img
         src={siteConfig.assets.logo}
         alt={siteConfig.brand.name}
-        className="w-full h-full object-contain pointer-events-none select-none drop-shadow-sm"
+        className="w-full h-full rounded-full object-contain pointer-events-none select-none drop-shadow-sm"
         suppressHydrationWarning
       />
     </div>

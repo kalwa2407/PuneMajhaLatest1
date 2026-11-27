@@ -25,7 +25,7 @@ const Footer = ({ setCurrentView }) => {
         <div className="max-w-[1340px] mx-auto px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="w-10 h-10 rounded-xl bg-white p-0.5 object-contain shrink-0 shadow" />
+            <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="w-11 h-11 rounded-full object-contain shrink-0" />
             <div>
               <span className="font-serif font-black text-white text-lg block leading-tight">{brandTitle}</span>
               <span className="text-[11px] font-bold text-red-300 tracking-wide">{siteConfig.brand.motto[language] || siteConfig.brand.tagline}</span>
@@ -55,7 +55,7 @@ const Footer = ({ setCurrentView }) => {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-3 mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="w-11 h-11 rounded-full bg-white p-0.5 object-contain shrink-0" />
+              <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="w-11 h-11 rounded-full object-contain shrink-0" />
               <div>
                 <h3 className="font-black text-lg text-white leading-tight">{brandTitle}</h3>
                 <p className="text-[11px] font-bold text-red-400 tracking-wide">{siteConfig.brand.motto[language] || siteConfig.brand.tagline}</p>

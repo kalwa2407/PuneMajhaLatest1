@@ -88,10 +88,9 @@ const Header = ({ user, currentView, setCurrentView, handleLogout, setSelectedAr
   }
 
   const navTabClass = (active) =>
-    `text-[13px] font-extrabold tracking-wide px-3.5 py-1.5 rounded-full transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
-      active
-        ? 'bg-brand-navy text-white shadow-sm'
-        : 'text-gray-700 hover:text-brand-navy hover:bg-blue-50/80'
+    `text-[13px] font-extrabold tracking-wide px-3.5 py-1.5 rounded-full transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${active
+      ? 'bg-brand-navy text-white shadow-sm'
+      : 'text-gray-700 hover:text-brand-navy hover:bg-blue-50/80'
     }`
 
   return (
@@ -108,9 +107,9 @@ const Header = ({ user, currentView, setCurrentView, handleLogout, setSelectedAr
             <span className="text-gray-300 font-medium" suppressHydrationWarning>
               {mounted
                 ? new Date().toLocaleDateString(
-                    language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US',
-                    { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }
-                  )
+                  language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US',
+                  { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }
+                )
                 : ''}
             </span>
             <span className="hidden xl:inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-brand-red/90 text-white px-2.5 py-0.5 rounded-full">
@@ -129,11 +128,10 @@ const Header = ({ user, currentView, setCurrentView, handleLogout, setSelectedAr
                   key={lang.code}
                   type="button"
                   onClick={() => changeLanguage(lang.code)}
-                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
-                    language === lang.code
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${language === lang.code
                       ? 'bg-brand-red text-white shadow-sm'
                       : 'text-gray-200 hover:text-white'
-                  }`}
+                    }`}
                 >
                   {lang.label}
                 </button>
@@ -225,7 +223,7 @@ const Header = ({ user, currentView, setCurrentView, handleLogout, setSelectedAr
             className="flex items-center gap-3.5 cursor-pointer group"
             onClick={() => setCurrentView('home')}
           >
-            <div className="h-[62px] w-[62px] rounded-2xl border-2 border-brand-navy/15 bg-white shadow-sm p-0.5 flex items-center justify-center overflow-hidden">
+            <div className="h-[62px] w-[62px] rounded-full flex items-center justify-center overflow-hidden shrink-0">
               <VideoLogo className="h-full w-full transition-transform duration-300 group-hover:scale-105" />
             </div>
             <div className="flex flex-col leading-none">
@@ -322,11 +320,10 @@ const Header = ({ user, currentView, setCurrentView, handleLogout, setSelectedAr
 
             <button
               onClick={() => setCurrentView('live-tv')}
-              className={`px-4 py-1.5 rounded-full text-[12px] font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
-                currentView === 'live-tv'
+              className={`px-4 py-1.5 rounded-full text-[12px] font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${currentView === 'live-tv'
                   ? 'bg-brand-red text-white shadow-md'
                   : 'bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white'
-              }`}
+                }`}
             >
               <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
               {t('liveTv') || 'Live TV'}

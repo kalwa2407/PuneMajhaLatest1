@@ -146,7 +146,7 @@ export default function AdminLoginPage() {
             <Card className="w-full max-w-md border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
                 <CardHeader className="text-center">
                     <div className="mx-auto mb-3">
-                        <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="mx-auto mb-2 object-contain pointer-events-none h-[74px] w-[74px] rounded-full bg-white p-0.5 shadow-lg" />
+                        <img src={siteConfig.assets.logo} alt={siteConfig.brand.name} className="mx-auto mb-2 object-contain pointer-events-none h-[74px] w-[74px] rounded-full shadow-lg" />
                     </div>
                     <CardTitle className="text-2xl font-bold text-white">{siteConfig.brand.shortName} Admin</CardTitle>
                     <CardDescription className="text-gray-400">

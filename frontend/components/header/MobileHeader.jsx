@@ -48,9 +48,7 @@ export default function MobileHeader({
 
         {/* Center Logo Badge */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10" onClick={() => setCurrentView('home')}>
-          <div className="flex-shrink-0 bg-white rounded-full p-0.5 shadow-[0_6px_18px_rgba(0,0,0,0.28)] ring-2 ring-white/50 active:scale-95 transition-transform duration-150">
-            <VideoLogo className="w-[50px] h-[50px] rounded-full" />
-          </div>
+          <VideoLogo className="w-[52px] h-[52px] rounded-full drop-shadow-[0_6px_14px_rgba(0,0,0,0.32)] active:scale-95 transition-transform duration-150" />
         </div>
 
         <div className="flex items-center gap-1 relative z-10">
@@ -110,7 +108,7 @@ export default function MobileHeader({
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
           <div className="relative bg-white w-[280px] h-full shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-300">
             <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-              <div className="w-12 h-12 relative overflow-hidden flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full relative overflow-hidden flex items-center justify-center">
                 <VideoLogo className="w-full h-full" />
               </div>
               <span className="font-bold text-lg text-brand-navy absolute left-1/2 -translate-x-1/2">
